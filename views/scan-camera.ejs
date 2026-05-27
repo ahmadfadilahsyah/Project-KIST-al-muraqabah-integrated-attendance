@@ -53,30 +53,32 @@
 
     const html5QrCode = new Html5Qrcode("qr-reader");
 
-    Html5Qrcode.getCameras()
-        .then(cameras => {
-            if (!cameras || cameras.length === 0) {
-                scanStatus.innerText = 'Kamera tidak ditemukan.';
-                return;
+      Html5Qrcode.getCameras().then(cameras => {
+         if (!cameras || cameras.length === 0) {
+            scanStatus.innerText = 'Kamera tidak ditemukan.';
+            return;
+         }
+
+         // coba cari kamera belakang
+         let cameraId = cameras[0].id;
+         for (let cam of cameras) {
+            if (cam.label.toLowerCase().includes('back') || cam.label.toLowerCase().includes('environment')) {
+                  cameraId = cam.id;
+                  break;
             }
+         }
 
-            const cameraId = cameras[0].id;
+         html5QrCode.start(
+            cameraId,
+            { fps: 10, qrbox: { width: 250, height: 250 } },
+            onScanSuccess,
+            onScanFailure
+         );
 
-            html5QrCode.start(
-                cameraId,
-                {
-                    fps: 10,
-                    qrbox: { width: 250, height: 250 }
-                },
-                onScanSuccess,
-                onScanFailure
-            );
-
-            scanStatus.innerText = 'Kamera aktif. Silakan scan QR dengan jujur.';
-        })
-        .catch(err => {
-            scanStatus.innerText = 'Gagal membuka kamera. Izinkan akses kamera di browser.';
-        });
+         scanStatus.innerText = 'Kamera aktif. Silakan scan QR dengan jujur.';
+      }).catch(err => {
+         scanStatus.innerText = 'Gagal membuka kamera. Izinkan akses kamera di browser.';
+      });
 </script>
 
 </body>
