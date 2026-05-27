@@ -1,13 +1,21 @@
 {
   "name": "al_muraqabah",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Al-Muraqabah integrated attendance system based on QR Code, GPS validation, Shidiq, and Amanah values.",
+  "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node app.js",
+    "test": "echo \"No test specified\" && exit 0"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "attendance",
+    "qr-code",
+    "gps",
+    "islamic-values",
+    "shidiq",
+    "amanah"
+  ],
+  "author": "Ahmad Fadilah Syah",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
