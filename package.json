@@ -4,8 +4,10 @@
   "description": "Al-Muraqabah integrated attendance system based on QR Code, GPS validation, Shidiq, and Amanah values.",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js",
-    "test": "echo \"No test specified\" && exit 0"
+    "start": "node app.js"
+  },
+  "engines": {
+    "node": "20.x"
   },
   "keywords": [
     "attendance",
@@ -27,6 +29,5 @@
     "express-session": "^1.19.0",
     "qrcode": "^1.5.4",
     "sqlite3": "^6.0.1"
-  },
-  "devDependencies": {}
+  }
 }
