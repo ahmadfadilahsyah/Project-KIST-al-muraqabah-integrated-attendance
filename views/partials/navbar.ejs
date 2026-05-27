@@ -83,15 +83,32 @@
 </header>
 
 <nav class="mobile-bottom-nav">
-    <a href="/dashboard">🏠<span>Home</span></a>
+    <a href="/dashboard">
+        🏠
+        <span>Home</span>
+    </a>
 
     <% if (currentRole === 'student' || currentRole === 'mahasiswa') { %>
-        <a href="/scan">📷<span>Scan</span></a>
-        <a href="/profile">👤<span>Profil</span></a>
+        <a href="/scan">
+            📷
+            <span>Scan</span>
+        </a>
+
+        <a href="/profile">
+            👤
+            <span>Profil</span>
+        </a>
     <% } %>
 
     <% if (currentRole === 'lecturer' || currentRole === 'teacher' || currentRole === 'dosen') { %>
-        <a href="/create-session">📝<span>Sesi</span></a>
-        <a href="/gps-settings">📍<span>Lokasi</span></a>
+        <a href="/create-session">
+            📝
+            <span>Sesi</span>
+        </a>
+
+        <a href="/gps-settings">
+            📍
+            <span>Lokasi</span>
+        </a>
     <% } %>
 </nav>
