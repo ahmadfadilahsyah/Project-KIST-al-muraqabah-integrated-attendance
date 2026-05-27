@@ -80,6 +80,7 @@ router.post('/create-session', isLecturerPage, (req, res) => {
         function (err) {
             if (err) {
                 console.error(err);
+
                 return res.render('create-session', {
                     pageTitle: 'Buat Sesi',
                     pageSubtitle: 'Buat sesi pertemuan dan generate QR absensi',
@@ -129,6 +130,7 @@ router.get('/api/qr-token/:sessionId', isLecturerApi, (req, res) => {
         (err, session) => {
             if (err) {
                 console.error(err);
+
                 return res.status(500).json({
                     success: false,
                     message: 'Terjadi kesalahan database.'
@@ -145,7 +147,9 @@ router.get('/api/qr-token/:sessionId', isLecturerApi, (req, res) => {
             const token = crypto.randomBytes(32).toString('hex');
 
             const tokenExpiresAt = new Date();
-            tokenExpiresAt.setSeconds(tokenExpiresAt.getSeconds() + 30);
+
+            // Token QR dibuat aktif 2 menit agar cukup untuk proses scan + validasi GPS
+            tokenExpiresAt.setMinutes(tokenExpiresAt.getMinutes() + 2);
 
             const tokenExpiresAtSql = tokenExpiresAt
                 .toISOString()
@@ -159,6 +163,7 @@ router.get('/api/qr-token/:sessionId', isLecturerApi, (req, res) => {
                 async (err) => {
                     if (err) {
                         console.error(err);
+
                         return res.status(500).json({
                             success: false,
                             message: 'Gagal menyimpan token QR.'
@@ -178,6 +183,7 @@ router.get('/api/qr-token/:sessionId', isLecturerApi, (req, res) => {
                         });
                     } catch (error) {
                         console.error(error);
+
                         return res.status(500).json({
                             success: false,
                             message: 'Gagal membuat gambar QR Code.'
