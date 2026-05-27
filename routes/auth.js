@@ -4,6 +4,16 @@ const db = require('../database');
 
 const router = express.Router();
 
+function normalizeRole(role) {
+    if (role === 'dosen' || role === 'teacher') return 'lecturer';
+    if (role === 'mahasiswa') return 'student';
+    return role || 'student';
+}
+
+function readUser(nim, callback) {
+    db.get('SELECT nim, nama, email, role FROM users WHERE nim = ?', [nim], callback);
+}
+
 router.get('/', (req, res) => {
     if (req.session.user) return res.redirect('/dashboard');
     res.redirect('/login');
@@ -11,38 +21,48 @@ router.get('/', (req, res) => {
 
 router.get('/login', (req, res) => {
     if (req.session.user) return res.redirect('/dashboard');
-
-    res.render('login', {
-        error: null
-    });
+    res.render('login', { error: null });
 });
 
 router.post('/login', (req, res) => {
     const { nim, password } = req.body;
 
+    if (!nim || !password) {
+        return res.render('login', { error: 'NIM dan password wajib diisi.' });
+    }
+
     db.get('SELECT * FROM users WHERE nim = ?', [nim], async (err, user) => {
-        if (err || !user) {
-            return res.render('login', {
-                error: 'NIM atau password salah'
-            });
+        if (err) {
+            console.error(err);
+            return res.render('login', { error: 'Terjadi kesalahan server.' });
         }
 
-        const isMatch = await bcrypt.compare(password, user.password);
-
-        if (!isMatch) {
-            return res.render('login', {
-                error: 'NIM atau password salah'
-            });
+        if (!user) {
+            return res.render('login', { error: 'NIM atau password salah.' });
         }
+
+        let match = false;
+
+        try {
+            match = await bcrypt.compare(password, user.password);
+        } catch (error) {
+            console.error(error);
+        }
+
+        if (!match) {
+            return res.render('login', { error: 'NIM atau password salah.' });
+        }
+
+        const role = normalizeRole(user.role);
 
         req.session.user = {
             nim: user.nim,
             nama: user.nama,
             email: user.email,
-            role: user.role
+            role
         };
 
-        if (!user.email && user.role === 'student') {
+        if ((role === 'student') && !user.email) {
             return res.redirect('/profile');
         }
 
@@ -58,69 +78,48 @@ router.post('/login', (req, res) => {
 
 router.get('/register', (req, res) => {
     if (req.session.user) return res.redirect('/dashboard');
-
-    res.render('register', {
-        error: null
-    });
+    res.render('register', { error: null });
 });
 
 router.post('/register', (req, res) => {
     const { nim, nama, password, role } = req.body;
+    const fixedRole = normalizeRole(role);
 
-    if (!nim || !nama || !password || !role) {
-        return res.render('register', {
-            error: 'Semua field wajib diisi'
-        });
+    if (!nim || !nama || !password || !fixedRole) {
+        return res.render('register', { error: 'Semua field wajib diisi.' });
     }
 
     if (password.length < 6) {
-        return res.render('register', {
-            error: 'Password minimal 6 karakter'
-        });
+        return res.render('register', { error: 'Password minimal 6 karakter.' });
     }
 
-    db.get('SELECT * FROM users WHERE nim = ?', [nim], (err, existingUser) => {
+    db.get('SELECT nim FROM users WHERE nim = ?', [nim], (err, existing) => {
         if (err) {
-            return res.render('register', {
-                error: 'Terjadi kesalahan server'
-            });
+            console.error(err);
+            return res.render('register', { error: 'Terjadi kesalahan server.' });
         }
 
-        if (existingUser) {
-            return res.render('register', {
-                error: 'NIM sudah terdaftar'
-            });
+        if (existing) {
+            return res.render('register', { error: 'NIM sudah terdaftar.' });
         }
 
         bcrypt.hash(password, 10, (err, hashedPassword) => {
             if (err) {
-                return res.render('register', {
-                    error: 'Gagal mengenkripsi password'
-                });
+                console.error(err);
+                return res.render('register', { error: 'Gagal membuat akun.' });
             }
 
             db.run(
                 'INSERT INTO users (nim, nama, password, role) VALUES (?, ?, ?, ?)',
-                [nim, nama, hashedPassword, role],
-                function (err) {
+                [nim, nama, hashedPassword, fixedRole],
+                (err) => {
                     if (err) {
-                        return res.render('register', {
-                            error: 'Gagal membuat akun'
-                        });
+                        console.error(err);
+                        return res.render('register', { error: 'Gagal menyimpan akun.' });
                     }
 
-                    req.session.user = {
-                        nim,
-                        nama,
-                        email: null,
-                        role
-                    };
-
-                    if (role === 'student') {
-                        return res.redirect('/profile');
-                    }
-
-                    res.redirect('/dashboard');
+                    req.session.user = { nim, nama, email: null, role: fixedRole };
+                    res.redirect(fixedRole === 'student' ? '/profile' : '/dashboard');
                 }
             );
         });
@@ -130,23 +129,20 @@ router.post('/register', (req, res) => {
 router.get('/profile', (req, res) => {
     if (!req.session.user) return res.redirect('/login');
 
-    db.get(
-        'SELECT nim, nama, email, role FROM users WHERE nim = ?',
-        [req.session.user.nim],
-        (err, userData) => {
-            if (err || !userData) {
-                return res.redirect('/dashboard');
-            }
-
-            res.render('profile', {
-                pageTitle: 'Profil',
-                pageSubtitle: 'Kelola informasi akun dan keamanan password',
-                userData,
-                success: null,
-                error: null
-            });
+    readUser(req.session.user.nim, (err, userData) => {
+        if (err || !userData) {
+            console.error(err);
+            return res.redirect('/dashboard');
         }
-    );
+
+        res.render('profile', {
+            pageTitle: 'Profil',
+            pageSubtitle: 'Kelola identitas dan amanah digital akun Anda',
+            userData,
+            error: null,
+            success: null
+        });
+    });
 });
 
 router.post('/profile/update-email', (req, res) => {
@@ -154,65 +150,36 @@ router.post('/profile/update-email', (req, res) => {
 
     const { email } = req.body;
 
-    if (!email) {
-        return db.get(
-            'SELECT nim, nama, email, role FROM users WHERE nim = ?',
-            [req.session.user.nim],
-            (err, userData) => {
-                res.render('profile', {
-                    pageTitle: 'Profil',
-                    pageSubtitle: 'Kelola informasi akun dan keamanan password',
-                    userData,
-                    success: null,
-                    error: 'Email tidak boleh kosong'
-                });
-            }
-        );
-    }
+    const renderProfile = (error, success = null) => {
+        readUser(req.session.user.nim, (err, userData) => {
+            res.render('profile', {
+                pageTitle: 'Profil',
+                pageSubtitle: 'Kelola identitas dan amanah digital akun Anda',
+                userData,
+                error,
+                success
+            });
+        });
+    };
 
-    db.run(
-        'UPDATE users SET email = ? WHERE nim = ?',
-        [email, req.session.user.nim],
-        (err) => {
-            if (err) {
-                return db.get(
-                    'SELECT nim, nama, email, role FROM users WHERE nim = ?',
-                    [req.session.user.nim],
-                    (err, userData) => {
-                        res.render('profile', {
-                            pageTitle: 'Profil',
-                            pageSubtitle: 'Kelola informasi akun dan keamanan password',
-                            userData,
-                            success: null,
-                            error: 'Gagal memperbarui email'
-                        });
-                    }
-                );
-            }
+    if (!email) return renderProfile('Email wajib diisi.');
 
-            req.session.user.email = email;
-
-            if (req.session.redirectAfterProfile) {
-                const redirectUrl = req.session.redirectAfterProfile;
-                delete req.session.redirectAfterProfile;
-                return res.redirect(redirectUrl);
-            }
-
-            db.get(
-                'SELECT nim, nama, email, role FROM users WHERE nim = ?',
-                [req.session.user.nim],
-                (err, userData) => {
-                    res.render('profile', {
-                        pageTitle: 'Profil',
-                        pageSubtitle: 'Kelola informasi akun dan keamanan password',
-                        userData,
-                        success: 'Email berhasil diperbarui',
-                        error: null
-                    });
-                }
-            );
+    db.run('UPDATE users SET email = ? WHERE nim = ?', [email, req.session.user.nim], (err) => {
+        if (err) {
+            console.error(err);
+            return renderProfile('Gagal memperbarui email.');
         }
-    );
+
+        req.session.user.email = email;
+
+        if (req.session.redirectAfterProfile) {
+            const redirectUrl = req.session.redirectAfterProfile;
+            delete req.session.redirectAfterProfile;
+            return res.redirect(redirectUrl);
+        }
+
+        renderProfile(null, 'Email berhasil diperbarui.');
+    });
 });
 
 router.post('/profile/change-password', (req, res) => {
@@ -221,66 +188,59 @@ router.post('/profile/change-password', (req, res) => {
     const { old_password, new_password, confirm_password } = req.body;
 
     const renderProfile = (error, success = null) => {
-        db.get(
-            'SELECT nim, nama, email, role FROM users WHERE nim = ?',
-            [req.session.user.nim],
-            (err, userData) => {
-                res.render('profile', {
-                    pageTitle: 'Profil',
-                    pageSubtitle: 'Kelola informasi akun dan keamanan password',
-                    userData,
-                    success,
-                    error
-                });
-            }
-        );
+        readUser(req.session.user.nim, (err, userData) => {
+            res.render('profile', {
+                pageTitle: 'Profil',
+                pageSubtitle: 'Kelola identitas dan amanah digital akun Anda',
+                userData,
+                error,
+                success
+            });
+        });
     };
 
     if (!old_password || !new_password || !confirm_password) {
-        return renderProfile('Semua field password wajib diisi');
+        return renderProfile('Semua field password wajib diisi.');
     }
 
     if (new_password.length < 6) {
-        return renderProfile('Password baru minimal 6 karakter');
+        return renderProfile('Password baru minimal 6 karakter.');
     }
 
     if (new_password !== confirm_password) {
-        return renderProfile('Konfirmasi password tidak sama');
+        return renderProfile('Konfirmasi password tidak sama.');
     }
 
-    db.get(
-        'SELECT password FROM users WHERE nim = ?',
-        [req.session.user.nim],
-        async (err, user) => {
-            if (err || !user) {
-                return renderProfile('User tidak ditemukan');
+    db.get('SELECT password FROM users WHERE nim = ?', [req.session.user.nim], async (err, user) => {
+        if (err || !user) {
+            console.error(err);
+            return renderProfile('User tidak ditemukan.');
+        }
+
+        const match = await bcrypt.compare(old_password, user.password);
+        if (!match) return renderProfile('Password lama salah.');
+
+        bcrypt.hash(new_password, 10, (err, hashedPassword) => {
+            if (err) {
+                console.error(err);
+                return renderProfile('Gagal mengenkripsi password baru.');
             }
 
-            const isOldPasswordCorrect = await bcrypt.compare(old_password, user.password);
-
-            if (!isOldPasswordCorrect) {
-                return renderProfile('Password lama salah');
-            }
-
-            bcrypt.hash(new_password, 10, (err, hashedPassword) => {
+            db.run('UPDATE users SET password = ? WHERE nim = ?', [hashedPassword, req.session.user.nim], (err) => {
                 if (err) {
-                    return renderProfile('Gagal mengenkripsi password baru');
+                    console.error(err);
+                    return renderProfile('Gagal mengganti password.');
                 }
 
-                db.run(
-                    'UPDATE users SET password = ? WHERE nim = ?',
-                    [hashedPassword, req.session.user.nim],
-                    (err) => {
-                        if (err) {
-                            return renderProfile('Gagal mengganti password');
-                        }
-
-                        renderProfile(null, 'Password berhasil diganti');
-                    }
-                );
+                renderProfile(null, 'Password berhasil diganti.');
             });
-        }
-    );
+        });
+    });
+});
+
+router.post('/profile', (req, res) => {
+    req.url = '/profile/update-email';
+    router.handle(req, res);
 });
 
 router.get('/logout', (req, res) => {

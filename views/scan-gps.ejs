@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-
 <%- include('partials/navbar') %>
 
 <main class="main-content">
@@ -17,10 +16,7 @@
 
         <div class="islamic-message-box">
             <h3>Shidiq yang Dibuktikan</h3>
-            <p>
-                Sistem akan memeriksa lokasi sebagai bentuk ikhtiar menjaga kejujuran
-                dalam proses absensi.
-            </p>
+            <p>Sistem akan memeriksa lokasi sebagai bentuk ikhtiar menjaga kejujuran dalam proses absensi.</p>
         </div>
 
         <p id="status">Mengambil lokasi GPS...</p>
@@ -29,8 +25,7 @@
             <input type="hidden" name="token" id="token" value="<%= token %>">
             <input type="hidden" name="latitude" id="latitude">
             <input type="hidden" name="longitude" id="longitude">
-
-            <button type="button" class="btn-primary" onclick="sendLocation()">Coba Lagi / Submit Demo</button>
+            <button type="button" class="btn-primary" onclick="sendLocation()">Coba Lagi</button>
         </form>
     </section>
 </main>
@@ -40,59 +35,50 @@
 
     function sendLocation() {
         if (!navigator.geolocation) {
-            fallbackSubmit("GPS tidak tersedia, absensi dicatat untuk demo.");
+            statusText.innerText = 'Browser tidak mendukung GPS.';
             return;
         }
 
-        statusText.innerText = 'Mengambil lokasi GPS... (maks 1 menit)';
-
-        const options = {
-            enableHighAccuracy: false,
-            timeout: 60000, // 1 menit
-            maximumAge: 0
-        };
+        statusText.innerText = 'Mengambil lokasi GPS... Maksimal 1 menit.';
 
         navigator.geolocation.getCurrentPosition(
             function(position) {
                 document.getElementById('latitude').value = position.coords.latitude;
                 document.getElementById('longitude').value = position.coords.longitude;
-
-                submitForm();
+                submitLocation();
             },
             function(error) {
-                fallbackSubmit("GPS gagal didapatkan. Absensi dicatat untuk demo.");
+                if (error.code === 1) statusText.innerText = 'Akses lokasi ditolak. Izinkan lokasi di browser.';
+                else if (error.code === 2) statusText.innerText = 'Lokasi tidak tersedia. Pastikan GPS aktif.';
+                else if (error.code === 3) statusText.innerText = 'Waktu mengambil lokasi habis. Coba lagi.';
+                else statusText.innerText = 'Gagal mengambil lokasi.';
             },
-            options
+            { enableHighAccuracy: false, timeout: 60000, maximumAge: 0 }
         );
     }
 
-    function submitForm() {
+    async function submitLocation() {
         const token = document.getElementById('token').value;
         const latitude = document.getElementById('latitude').value;
         const longitude = document.getElementById('longitude').value;
 
-        fetch('/api/absen-gps', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ token, latitude, longitude })
-        })
-        .then(res => res.json())
-        .then(data => {
+        statusText.innerText = 'Mengirim data absensi...';
+
+        try {
+            const response = await fetch('/api/absen-gps', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token, latitude, longitude })
+            });
+
+            const data = await response.json();
             window.location.href = `/scan-success?success=${data.success}&message=${encodeURIComponent(data.message)}`;
-        })
-        .catch(() => {
-            fallbackSubmit("Terjadi kesalahan. Absensi dicatat untuk demo.");
-        });
+        } catch (error) {
+            statusText.innerText = 'Gagal mengirim data absensi.';
+        }
     }
 
-    function fallbackSubmit(message) {
-        alert(message);
-        window.location.href = `/scan-success?success=true&message=${encodeURIComponent(message)}`;
-    }
-
-    // Auto start
     sendLocation();
 </script>
-
 </body>
 </html>

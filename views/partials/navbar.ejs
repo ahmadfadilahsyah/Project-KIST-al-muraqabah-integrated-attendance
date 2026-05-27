@@ -1,6 +1,8 @@
 <%
     const currentUser = typeof user !== 'undefined' ? user : null;
     const currentRole = currentUser ? currentUser.role : null;
+    const isLecturer = currentRole === 'lecturer' || currentRole === 'teacher' || currentRole === 'dosen';
+    const isStudent = currentRole === 'student' || currentRole === 'mahasiswa';
 %>
 
 <aside class="sidebar">
@@ -18,63 +20,39 @@
     </div>
 
     <nav class="sidebar-menu">
-        <a href="/dashboard" class="sidebar-link">
-            <span>🏠</span>
-            <span>Dashboard</span>
-        </a>
+        <a href="/dashboard" class="sidebar-link"><span>🏠</span><span>Dashboard</span></a>
 
-        <% if (currentRole === 'lecturer' || currentRole === 'teacher' || currentRole === 'dosen') { %>
-            <a href="/create-session" class="sidebar-link">
-                <span>📝</span>
-                <span>Buat Sesi Amanah</span>
-            </a>
-
-            <a href="/gps-settings" class="sidebar-link">
-                <span>📍</span>
-                <span>Set Lokasi Jujur</span>
-            </a>
+        <% if (isLecturer) { %>
+            <a href="/create-session" class="sidebar-link"><span>📝</span><span>Buat Sesi</span></a>
+            <a href="/gps-settings" class="sidebar-link"><span>📍</span><span>Set Lokasi</span></a>
         <% } %>
 
-        <% if (currentRole === 'student' || currentRole === 'mahasiswa') { %>
-            <a href="/scan" class="sidebar-link">
-                <span>📷</span>
-                <span>Scan Kehadiran</span>
-            </a>
-
-            <a href="/profile" class="sidebar-link">
-                <span>👤</span>
-                <span>Profil</span>
-            </a>
+        <% if (isStudent) { %>
+            <a href="/scan" class="sidebar-link"><span>📷</span><span>Scan QR</span></a>
         <% } %>
+
+        <a href="/profile" class="sidebar-link"><span>👤</span><span>Profil</span></a>
     </nav>
 
     <div class="sidebar-profile">
-        <div class="sidebar-avatar">
-            <%= currentUser && currentUser.nama ? currentUser.nama.charAt(0).toUpperCase() : 'U' %>
-        </div>
-
+        <div class="sidebar-avatar"><%= currentUser && currentUser.nama ? currentUser.nama.charAt(0).toUpperCase() : 'U' %></div>
         <div>
             <strong><%= currentUser ? currentUser.nama : 'User' %></strong>
             <small><%= currentUser ? currentUser.role : '-' %></small>
         </div>
     </div>
 
-    <a href="/logout" class="logout-link">
-        🚪 Logout
-    </a>
+    <a href="/logout" class="logout-link">🚪 Logout</a>
 </aside>
 
 <header class="topbar">
     <div>
-        <h1><%= typeof pageTitle !== 'undefined' ? pageTitle : 'Dashboard Amanah' %></h1>
+        <h1><%= typeof pageTitle !== 'undefined' ? pageTitle : 'Dashboard' %></h1>
         <p><%= typeof pageSubtitle !== 'undefined' ? pageSubtitle : 'Menghadirkan kejujuran akademik melalui teknologi' %></p>
     </div>
 
     <a href="/profile" class="topbar-profile">
-        <div class="avatar">
-            <%= currentUser && currentUser.nama ? currentUser.nama.charAt(0).toUpperCase() : 'U' %>
-        </div>
-
+        <div class="avatar"><%= currentUser && currentUser.nama ? currentUser.nama.charAt(0).toUpperCase() : 'U' %></div>
         <div>
             <strong><%= currentUser ? currentUser.nama : 'User' %></strong>
             <small><%= currentUser ? currentUser.role : '-' %></small>
@@ -83,32 +61,16 @@
 </header>
 
 <nav class="mobile-bottom-nav">
-    <a href="/dashboard">
-        🏠
-        <span>Home</span>
-    </a>
+    <a href="/dashboard">🏠<span>Home</span></a>
 
-    <% if (currentRole === 'student' || currentRole === 'mahasiswa') { %>
-        <a href="/scan">
-            📷
-            <span>Scan</span>
-        </a>
-
-        <a href="/profile">
-            👤
-            <span>Profil</span>
-        </a>
+    <% if (isStudent) { %>
+        <a href="/scan">📷<span>Scan</span></a>
     <% } %>
 
-    <% if (currentRole === 'lecturer' || currentRole === 'teacher' || currentRole === 'dosen') { %>
-        <a href="/create-session">
-            📝
-            <span>Sesi</span>
-        </a>
-
-        <a href="/gps-settings">
-            📍
-            <span>Lokasi</span>
-        </a>
+    <% if (isLecturer) { %>
+        <a href="/create-session">📝<span>Sesi</span></a>
+        <a href="/gps-settings">📍<span>Lokasi</span></a>
     <% } %>
+
+    <a href="/profile">👤<span>Profil</span></a>
 </nav>

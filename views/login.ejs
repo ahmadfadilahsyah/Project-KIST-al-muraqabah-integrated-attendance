@@ -2,34 +2,39 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Masuk - Al-Muraqabah</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masuk | Al-Muraqabah</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
-<body>
-<div class="card">
-    <div class="logo">
-        <h1>📿 Al-Muraqabah</h1>
-        <p>Sistem Absensi Digital</p>
-    </div>
-    <h2>Masuk</h2>
-    <% if (error) { %>
-        <div class="error"><%= error %></div>
-    <% } %>
-    <form action="/login" method="post">
-        <div class="input-group">
-            <label>NIM</label>
-            <input type="text" name="nim" placeholder="Contoh: D001 atau 202401001" required autofocus>
+<body class="auth-page">
+    <main class="auth-card">
+        <div class="auth-brand">
+            <div class="auth-logo">م</div>
+            <h1>Al-Muraqabah</h1>
+            <p>Iman ke Aksi melalui Shidiq dan Amanah</p>
         </div>
-        <div class="input-group">
-            <label>Password</label>
-            <input type="password" name="password" placeholder="********" required>
-        </div>
-        <button type="submit">Login</button>
-    </form>
-    <div class="footer">
-        Belum punya akun? <a href="/register">Daftar sekarang</a>
-    </div>
-</div>
+
+        <h2>Masuk</h2>
+
+        <% if (error) { %>
+            <div class="alert alert-error"><%= error %></div>
+        <% } %>
+
+        <form action="/login" method="POST">
+            <div class="form-group">
+                <label>NIM / ID</label>
+                <input type="text" name="nim" class="form-control" placeholder="Contoh: D001 atau M001" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" class="form-control" placeholder="Masukkan password" required>
+            </div>
+
+            <button type="submit" class="btn-primary full-width">Login</button>
+        </form>
+
+        <p class="auth-footer">Belum punya akun? <a href="/register">Daftar sekarang</a></p>
+    </main>
 </body>
 </html>

@@ -7,38 +7,28 @@
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-
 <%- include('partials/navbar') %>
 
 <main class="main-content">
-
     <section class="content-card islamic-hero">
-        <div>
-            <span class="value-badge">Iman ke Aksi</span>
-            <h2>Al-Muraqabah</h2>
-            <p>
-                Sistem absensi berbasis nilai <strong>shidiq</strong> dan <strong>amanah</strong>
-                untuk membangun kejujuran akademik melalui teknologi QR dan GPS.
-            </p>
-        </div>
+        <span class="value-badge">Iman ke Aksi</span>
+        <h2>Al-Muraqabah</h2>
+        <p>Sistem absensi berbasis nilai <strong>shidiq</strong> dan <strong>amanah</strong> untuk membangun kejujuran akademik melalui teknologi QR dan GPS.</p>
     </section>
 
     <% if (user.role === 'lecturer' || user.role === 'teacher' || user.role === 'dosen') { %>
-
         <section class="stats-grid">
             <div class="stat-card">
-                <p>Sesi Amanah Aktif</p>
+                <p>Sesi Aktif</p>
                 <h2><%= sessions.length %></h2>
             </div>
-
             <div class="stat-card">
-                <p>Peran</p>
-                <h2>Dosen</h2>
+                <p>Mahasiswa</p>
+                <h2><%= totalMahasiswa %></h2>
             </div>
-
             <div class="stat-card">
-                <p>Nilai Utama</p>
-                <h2>Amanah</h2>
+                <p>Rata-rata Hadir</p>
+                <h2><%= avg %>%</h2>
             </div>
         </section>
 
@@ -46,35 +36,36 @@
             <div class="dashboard-section-header">
                 <div>
                     <h2>📚 Daftar Sesi Aktif</h2>
-                    <p>Sesi aktif dapat dibuka kembali selama waktu absensi belum berakhir.</p>
+                    <p>Sesi aktif dapat dibuka kembali untuk menampilkan QR selama belum dinonaktifkan.</p>
                 </div>
-
-                <a href="/create-session" class="btn-primary">Buat Sesi Amanah</a>
+                <a href="/create-session" class="btn-primary">Buat Sesi</a>
             </div>
 
             <% if (sessions.length === 0) { %>
-                <div class="empty-state">Belum ada sesi aktif.</div>
+                <div class="empty-state">Belum ada sesi aktif. Buat sesi terlebih dahulu.</div>
             <% } else { %>
                 <div class="table-wrapper">
                     <table>
                         <thead>
                             <tr>
                                 <th>Judul Pertemuan</th>
+                                <th>Dibuat</th>
                                 <th>Berakhir</th>
-                                <th>Status</th>
+                                <th>Kehadiran</th>
                                 <th>Aksi</th>
                             </tr>
                         </thead>
                         <tbody>
                             <% sessions.forEach(session => { %>
                                 <tr>
-                                    <td><%= session.judul %></td>
-                                    <td><%= session.expires_at %></td>
-                                    <td><span class="badge hadir">Aktif</span></td>
+                                    <td><strong><%= session.judul || 'Tanpa Judul' %></strong></td>
+                                    <td><%= session.created_at || '-' %></td>
+                                    <td><%= session.expires_at || '-' %></td>
+                                    <td><span class="badge hadir"><%= session.hadir || 0 %> Hadir</span></td>
                                     <td>
                                         <div class="table-actions">
                                             <a href="/show-qr/<%= session.id %>" class="btn-small">Lihat QR</a>
-                                            <form action="/delete-session/<%= session.id %>" method="POST">
+                                            <form action="/delete-session/<%= session.id %>" method="POST" onsubmit="return confirm('Nonaktifkan sesi ini?')">
                                                 <button type="submit" class="btn-small-danger">Nonaktifkan</button>
                                             </form>
                                         </div>
@@ -86,17 +77,14 @@
                 </div>
             <% } %>
         </section>
-
     <% } else { %>
-
         <section class="content-card">
             <div class="dashboard-section-header">
                 <div>
                     <h2>📋 Riwayat Absensi</h2>
-                    <p>Hadir dengan jujur adalah bentuk amanah dalam menuntut ilmu.</p>
+                    <p>Gunakan tombol scan untuk melakukan absensi secara jujur dan bertanggung jawab.</p>
                 </div>
-
-                <a href="/scan" class="btn-primary">📷 Scan QR Absensi</a>
+                <a href="/scan" class="btn-primary">📷 Scan QR</a>
             </div>
 
             <% if (attendanceHistory.length === 0) { %>
@@ -107,7 +95,7 @@
                         <thead>
                             <tr>
                                 <th>Pertemuan</th>
-                                <th>Waktu Sesi</th>
+                                <th>Waktu Absen</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
@@ -115,7 +103,7 @@
                             <% attendanceHistory.forEach(item => { %>
                                 <tr>
                                     <td><%= item.judul %></td>
-                                    <td><%= item.expires_at %></td>
+                                    <td><%= item.created_at || '-' %></td>
                                     <td><span class="badge hadir">Hadir</span></td>
                                 </tr>
                             <% }) %>
@@ -124,10 +112,7 @@
                 </div>
             <% } %>
         </section>
-
     <% } %>
-
 </main>
-
 </body>
 </html>

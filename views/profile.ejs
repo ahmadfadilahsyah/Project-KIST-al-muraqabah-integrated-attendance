@@ -7,44 +7,23 @@
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-
 <%- include('partials/navbar') %>
 
 <main class="main-content">
-    <% if (error) { %>
-        <div class="alert alert-error"><%= error %></div>
-    <% } %>
-
-    <% if (success) { %>
-        <div class="alert alert-success"><%= success %></div>
-    <% } %>
+    <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+    <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
 
     <section class="profile-grid">
         <div class="content-card profile-card">
             <span class="value-badge">Identitas Amanah</span>
-
-            <div class="profile-avatar-large">
-                <%= userData && userData.nama ? userData.nama.charAt(0).toUpperCase() : 'U' %>
-            </div>
-
+            <div class="profile-avatar-large"><%= userData && userData.nama ? userData.nama.charAt(0).toUpperCase() : 'U' %></div>
             <h2><%= userData.nama %></h2>
             <p><%= userData.role %></p>
 
             <div class="profile-info">
-                <div>
-                    <span>NIM / ID</span>
-                    <strong><%= userData.nim %></strong>
-                </div>
-
-                <div>
-                    <span>Email</span>
-                    <strong><%= userData.email || 'Belum diisi' %></strong>
-                </div>
-
-                <div>
-                    <span>Nilai Karakter</span>
-                    <strong>Shidiq & Amanah</strong>
-                </div>
+                <div><span>NIM / ID</span><strong><%= userData.nim %></strong></div>
+                <div><span>Email</span><strong><%= userData.email || 'Belum diisi' %></strong></div>
+                <div><span>Nilai Karakter</span><strong>Shidiq & Amanah</strong></div>
             </div>
         </div>
 
@@ -52,13 +31,11 @@
             <section class="content-card">
                 <h2>👤 Update Email</h2>
                 <p class="info">Email digunakan sebagai identitas komunikasi akademik.</p>
-
                 <form action="/profile/update-email" method="POST">
                     <div class="form-group">
                         <label>Email</label>
                         <input type="email" name="email" class="form-control" value="<%= userData.email || '' %>" placeholder="Masukkan email aktif" required>
                     </div>
-
                     <button type="submit" class="btn-primary">Simpan Email</button>
                 </form>
             </section>
@@ -66,29 +43,24 @@
             <section class="content-card">
                 <h2>🔐 Ganti Password</h2>
                 <p class="info">Menjaga akun adalah bagian dari amanah digital.</p>
-
                 <form action="/profile/change-password" method="POST">
                     <div class="form-group">
                         <label>Password Lama</label>
                         <input type="password" name="old_password" class="form-control" placeholder="Masukkan password lama" required>
                     </div>
-
                     <div class="form-group">
                         <label>Password Baru</label>
                         <input type="password" name="new_password" class="form-control" placeholder="Minimal 6 karakter" required>
                     </div>
-
                     <div class="form-group">
                         <label>Konfirmasi Password Baru</label>
                         <input type="password" name="confirm_password" class="form-control" placeholder="Ulangi password baru" required>
                     </div>
-
                     <button type="submit" class="btn-primary">Ganti Password</button>
                 </form>
             </section>
         </div>
     </section>
 </main>
-
 </body>
 </html>

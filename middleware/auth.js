@@ -4,10 +4,13 @@ function isAuth(req, res, next) {
         return res.redirect('/login');
     }
 
+    const role = req.session.user.role;
+
     if (
-        req.session.user.role === 'student' &&
+        (role === 'student' || role === 'mahasiswa') &&
         !req.session.user.email &&
-        req.originalUrl !== '/profile'
+        req.originalUrl !== '/profile' &&
+        !req.originalUrl.startsWith('/profile/')
     ) {
         req.session.redirectAfterProfile = req.originalUrl;
         return res.redirect('/profile');

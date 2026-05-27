@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-
 <%- include('partials/navbar') %>
 
 <main class="main-content">
@@ -17,62 +16,67 @@
 
         <div class="islamic-message-box">
             <h3>Kejujuran yang Terukur</h3>
-            <p>
-                Validasi lokasi membantu menjaga kejujuran absensi agar kehadiran
-                benar-benar dilakukan di tempat yang semestinya.
-            </p>
+            <p>Validasi lokasi membantu menjaga kejujuran absensi agar kehadiran benar-benar dilakukan di tempat yang semestinya.</p>
         </div>
 
-        <% if (typeof error !== 'undefined' && error) { %>
-            <div class="alert alert-error"><%= error %></div>
-        <% } %>
-
-        <% if (typeof success !== 'undefined' && success) { %>
-            <div class="alert alert-success"><%= success %></div>
-        <% } %>
+        <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+        <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
 
         <form action="/gps-settings" method="POST">
             <div class="form-group">
-                <label>Nama Kelas</label>
-                <input type="text" name="class_name" class="form-control" placeholder="Contoh: Informatika A" required>
+                <label>Nama Kelas / Lokasi</label>
+                <input type="text" name="class_name" class="form-control" value="<%= setting.class_name || '' %>" placeholder="Contoh: Ruang Informatika A">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Latitude</label>
+                    <input type="number" step="any" name="latitude" id="latitude" class="form-control" value="<%= setting.latitude || '' %>" placeholder="Contoh: -6.200000" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Longitude</label>
+                    <input type="number" step="any" name="longitude" id="longitude" class="form-control" value="<%= setting.longitude || '' %>" placeholder="Contoh: 106.816666" required>
+                </div>
             </div>
 
             <div class="form-group">
-                <label>Radius Absensi</label>
-                <input type="number" name="radius_meters" class="form-control" value="50" min="1" required>
+                <label>Radius Absensi (meter)</label>
+                <input type="number" name="radius_meters" class="form-control" value="<%= setting.radius_meters || 75 %>" min="1" required>
             </div>
 
-            <div class="form-group">
-                <label>Latitude</label>
-                <input type="text" name="latitude" id="latitude" class="form-control disabled-input" readonly required>
+            <div class="button-row">
+                <button type="button" class="btn-secondary" onclick="getCurrentLocation()">📍 Ambil Lokasi Otomatis</button>
+                <button type="submit" class="btn-primary">Simpan Lokasi</button>
             </div>
-
-            <div class="form-group">
-                <label>Longitude</label>
-                <input type="text" name="longitude" id="longitude" class="form-control disabled-input" readonly required>
-            </div>
-
-            <button type="submit" class="btn-primary">Simpan Lokasi Jujur</button>
         </form>
+
+        <p id="locationStatus" class="info"></p>
     </section>
 </main>
 
 <script>
-    navigator.geolocation.getCurrentPosition(
-        function(position) {
-            document.getElementById('latitude').value = position.coords.latitude;
-            document.getElementById('longitude').value = position.coords.longitude;
-        },
-        function() {
-            alert('Gagal mengambil lokasi. Aktifkan GPS dan izinkan akses lokasi.');
-        },
-        {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 0
-        }
-    );
-</script>
+    function getCurrentLocation() {
+        const status = document.getElementById('locationStatus');
+        status.innerText = 'Mengambil lokasi perangkat...';
 
+        if (!navigator.geolocation) {
+            status.innerText = 'Browser tidak mendukung GPS.';
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                document.getElementById('latitude').value = position.coords.latitude;
+                document.getElementById('longitude').value = position.coords.longitude;
+                status.innerText = 'Lokasi berhasil diambil. Silakan simpan.';
+            },
+            function(error) {
+                status.innerText = 'Gagal mengambil lokasi. Pastikan GPS aktif dan izin lokasi diberikan.';
+            },
+            { enableHighAccuracy: false, timeout: 60000, maximumAge: 0 }
+        );
+    }
+</script>
 </body>
 </html>

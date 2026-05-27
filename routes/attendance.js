@@ -17,23 +17,17 @@ function getDistance(lat1, lon1, lat2, lon2) {
         Math.sin(dLon / 2);
 
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
     return R * c;
 }
 
 function isStudent(req, res, next) {
-    if (!req.session.user) {
-        req.session.redirectAfterLogin = req.originalUrl;
-        return res.redirect('/login');
-    }
-
-    const role = req.session.user.role;
-
-    if (role !== 'student' && role !== 'mahasiswa') {
-        return res.status(403).send('Hanya mahasiswa yang dapat melakukan absensi.');
-    }
-
-    next();
+    isAuth(req, res, () => {
+        const role = req.session.user.role;
+        if (role !== 'student' && role !== 'mahasiswa') {
+            return res.status(403).send('Hanya mahasiswa yang dapat melakukan absensi.');
+        }
+        next();
+    });
 }
 
 router.get('/scan', isStudent, (req, res) => {
@@ -47,9 +41,13 @@ router.get('/confirm/:token', isStudent, (req, res) => {
     const { token } = req.params;
 
     db.get(
-        `SELECT * FROM qr_tokens 
-         WHERE token = ? 
-         AND expires_at > datetime('now')`,
+        `SELECT qt.*, s.judul
+         FROM qr_tokens qt
+         JOIN sessions s ON s.id = qt.session_id
+         WHERE qt.token = ?
+         AND qt.expires_at > datetime('now')
+         AND s.active = 1
+         AND s.expires_at > datetime('now')`,
         [token],
         (err, qrToken) => {
             if (err) {
@@ -67,14 +65,12 @@ router.get('/confirm/:token', isStudent, (req, res) => {
             }
 
             db.get(
-                `SELECT * FROM attendance 
-                 WHERE nim = ? 
-                 AND session_id = ?`,
+                'SELECT * FROM attendance WHERE nim = ? AND session_id = ?',
                 [req.session.user.nim, qrToken.session_id],
                 (err, existing) => {
                     if (err) {
                         console.error(err);
-                        return res.status(500).send('Gagal memeriksa data absensi.');
+                        return res.status(500).send('Gagal memeriksa absensi.');
                     }
 
                     if (existing) {
@@ -100,134 +96,92 @@ router.get('/confirm/:token', isStudent, (req, res) => {
 
 router.post('/api/absen-gps', isAuth, (req, res) => {
     const { token, latitude, longitude } = req.body;
-
     const role = req.session.user.role;
 
     if (role !== 'student' && role !== 'mahasiswa') {
-        return res.status(403).json({
-            success: false,
-            message: 'Hanya mahasiswa yang dapat melakukan absensi.'
-        });
+        return res.status(403).json({ success: false, message: 'Hanya mahasiswa yang dapat melakukan absensi.' });
     }
 
     if (!token || !latitude || !longitude) {
-        return res.status(400).json({
-            success: false,
-            message: 'Data lokasi tidak lengkap.'
-        });
+        return res.status(400).json({ success: false, message: 'Data lokasi tidak lengkap.' });
     }
 
     const studentLat = parseFloat(latitude);
     const studentLng = parseFloat(longitude);
 
-    if (isNaN(studentLat) || isNaN(studentLng)) {
-        return res.status(400).json({
-            success: false,
-            message: 'Koordinat lokasi tidak valid.'
-        });
+    if (Number.isNaN(studentLat) || Number.isNaN(studentLng)) {
+        return res.status(400).json({ success: false, message: 'Koordinat lokasi tidak valid.' });
     }
 
     db.get(
-        `SELECT * FROM qr_tokens 
-         WHERE token = ? 
-         AND expires_at > datetime('now')`,
+        `SELECT qt.*, s.judul
+         FROM qr_tokens qt
+         JOIN sessions s ON s.id = qt.session_id
+         WHERE qt.token = ?
+         AND qt.expires_at > datetime('now')
+         AND s.active = 1
+         AND s.expires_at > datetime('now')`,
         [token],
         (err, qrToken) => {
             if (err) {
                 console.error(err);
-                return res.status(500).json({
-                    success: false,
-                    message: 'Terjadi kesalahan server.'
-                });
+                return res.status(500).json({ success: false, message: 'Terjadi kesalahan server.' });
             }
 
             if (!qrToken) {
-                return res.status(400).json({
-                    success: false,
-                    message: 'QR tidak valid atau sudah kadaluarsa.'
-                });
+                return res.status(400).json({ success: false, message: 'QR tidak valid atau sudah kadaluarsa.' });
             }
 
             db.get(
-                `SELECT * FROM attendance 
-                 WHERE nim = ? 
-                 AND session_id = ?`,
+                'SELECT * FROM attendance WHERE nim = ? AND session_id = ?',
                 [req.session.user.nim, qrToken.session_id],
                 (err, existing) => {
                     if (err) {
                         console.error(err);
-                        return res.status(500).json({
-                            success: false,
-                            message: 'Gagal memeriksa data absensi.'
-                        });
+                        return res.status(500).json({ success: false, message: 'Gagal memeriksa absensi.' });
                     }
 
-                    if (existing) {
-                        return res.status(400).json({
-                            success: false,
-                            message: 'Anda sudah absen pada sesi ini.'
-                        });
-                    }
+                    if (existing) return res.status(400).json({ success: false, message: 'Anda sudah absen pada sesi ini.' });
 
-                    db.get(
-                        `SELECT * FROM class_settings 
-                         ORDER BY id DESC 
-                         LIMIT 1`,
-                        [],
-                        (err, setting) => {
-                            if (err) {
-                                console.error(err);
-                                return res.status(500).json({
-                                    success: false,
-                                    message: 'Gagal mengambil lokasi kelas.'
-                                });
-                            }
-
-                            if (!setting) {
-                                return res.status(400).json({
-                                    success: false,
-                                    message: 'Lokasi kelas belum diatur oleh dosen.'
-                                });
-                            }
-
-                            const classLat = parseFloat(setting.latitude);
-                            const classLng = parseFloat(setting.longitude);
-                            const radius = parseInt(setting.radius_meters) || 50;
-
-                            const distance = getDistance(
-                                studentLat,
-                                studentLng,
-                                classLat,
-                                classLng
-                            );
-
-                            if (distance > radius) {
-                                return res.status(400).json({
-                                    success: false,
-                                    message: `Anda berada di luar radius kelas. Jarak Anda ${Math.round(distance)} meter, batas maksimal ${radius} meter.`
-                                });
-                            }
-
-                            db.run(
-                                `INSERT INTO attendance (nim, session_id) VALUES (?, ?)`,
-                                [req.session.user.nim, qrToken.session_id],
-                                (err) => {
-                                    if (err) {
-                                        console.error(err);
-                                        return res.status(500).json({
-                                            success: false,
-                                            message: 'Gagal menyimpan absensi.'
-                                        });
-                                    }
-
-                                    res.json({
-                                        success: true,
-                                        message: `Absensi berhasil. Jarak Anda dari kelas ${Math.round(distance)} meter.`
-                                    });
-                                }
-                            );
+                    db.get('SELECT * FROM class_settings ORDER BY id DESC LIMIT 1', [], (err, setting) => {
+                        if (err) {
+                            console.error(err);
+                            return res.status(500).json({ success: false, message: 'Gagal mengambil lokasi kelas.' });
                         }
-                    );
+
+                        if (!setting || setting.latitude === null || setting.longitude === null) {
+                            return res.status(400).json({ success: false, message: 'Lokasi kelas belum diatur oleh dosen.' });
+                        }
+
+                        const classLat = parseFloat(setting.latitude);
+                        const classLng = parseFloat(setting.longitude);
+                        const radius = parseInt(setting.radius_meters, 10) || 50;
+                        const distance = getDistance(studentLat, studentLng, classLat, classLng);
+
+                        if (distance > radius) {
+                            return res.status(400).json({
+                                success: false,
+                                message: `Anda berada di luar radius kelas. Jarak ${Math.round(distance)} meter, batas maksimal ${radius} meter.`
+                            });
+                        }
+
+                        db.run(
+                            `INSERT INTO attendance (nim, session_id, latitude, longitude, distance_meters, created_at)
+                             VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+                            [req.session.user.nim, qrToken.session_id, studentLat, studentLng, distance],
+                            (err) => {
+                                if (err) {
+                                    console.error(err);
+                                    return res.status(500).json({ success: false, message: 'Gagal menyimpan absensi.' });
+                                }
+
+                                res.json({
+                                    success: true,
+                                    message: `Absensi berhasil. Jarak Anda dari kelas ${Math.round(distance)} meter.`
+                                });
+                            }
+                        );
+                    });
                 }
             );
         }

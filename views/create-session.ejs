@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-
 <%- include('partials/navbar') %>
 
 <main class="main-content">
@@ -17,10 +16,7 @@
 
         <div class="islamic-message-box">
             <h3>Sesi sebagai Amanah</h3>
-            <p>
-                Setiap sesi menjadi ruang untuk menumbuhkan kedisiplinan, kejujuran,
-                dan tanggung jawab dalam proses belajar.
-            </p>
+            <p>Setiap sesi menjadi ruang untuk menumbuhkan kedisiplinan, kejujuran, dan tanggung jawab dalam proses belajar.</p>
         </div>
 
         <% if (error) { %>
@@ -34,7 +30,7 @@
             </div>
 
             <div class="form-group">
-                <label>Masa Berlaku Sesi</label>
+                <label>Masa Berlaku Sesi (menit)</label>
                 <input type="number" name="expires_minutes" class="form-control" value="60" min="1" required>
             </div>
 
@@ -42,6 +38,5 @@
         </form>
     </section>
 </main>
-
 </body>
 </html>
