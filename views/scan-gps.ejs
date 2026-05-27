@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validasi GPS | Al-Muraqabah</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<%- include('partials/navbar') %>
+
+<main class="main-content">
+    <section class="content-card form-card text-center">
+        <span class="value-badge">Validasi Amanah</span>
+        <h2>📍 Validasi Lokasi</h2>
+
+        <div class="islamic-message-box">
+            <h3>Shidiq yang Dibuktikan</h3>
+            <p>
+                Sistem akan memeriksa lokasi sebagai bentuk ikhtiar menjaga kejujuran
+                dalam proses absensi.
+            </p>
+        </div>
+
+        <p id="status">Mengambil lokasi GPS...</p>
+
+        <form id="gpsForm">
+            <input type="hidden" name="token" id="token" value="<%= token %>">
+            <input type="hidden" name="latitude" id="latitude">
+            <input type="hidden" name="longitude" id="longitude">
+
+            <button type="button" class="btn-primary" onclick="sendLocation()">Coba Lagi</button>
+        </form>
+    </section>
+</main>
+
+<script>
+    function sendLocation() {
+        const statusText = document.getElementById('status');
+        statusText.innerText = 'Mengambil lokasi GPS...';
+
+        navigator.geolocation.getCurrentPosition(
+            async function(position) {
+                const token = document.getElementById('token').value;
+                const latitude = position.coords.latitude;
+                const longitude = position.coords.longitude;
+
+                document.getElementById('latitude').value = latitude;
+                document.getElementById('longitude').value = longitude;
+
+                statusText.innerText = 'Mengirim data absensi...';
+
+                try {
+                    const response = await fetch('/api/absen-gps', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ token, latitude, longitude })
+                    });
+
+                    const data = await response.json();
+
+                    window.location.href = `/scan-success?success=${data.success}&message=${encodeURIComponent(data.message)}`;
+                } catch (error) {
+                    statusText.innerText = 'Gagal mengirim data absensi.';
+                }
+            },
+            function() {
+                statusText.innerText = 'Gagal mengambil lokasi. Aktifkan GPS dan izinkan akses lokasi.';
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    }
+
+    sendLocation();
+</script>
+
+</body>
+</html>

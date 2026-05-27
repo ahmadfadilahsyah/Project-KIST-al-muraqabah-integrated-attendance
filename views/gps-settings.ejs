@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Set Lokasi | Al-Muraqabah</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<%- include('partials/navbar') %>
+
+<main class="main-content">
+    <section class="content-card form-card">
+        <span class="value-badge">Shidiq dalam Lokasi</span>
+        <h2>📍 Set Lokasi Kelas</h2>
+
+        <div class="islamic-message-box">
+            <h3>Kejujuran yang Terukur</h3>
+            <p>
+                Validasi lokasi membantu menjaga kejujuran absensi agar kehadiran
+                benar-benar dilakukan di tempat yang semestinya.
+            </p>
+        </div>
+
+        <% if (typeof error !== 'undefined' && error) { %>
+            <div class="alert alert-error"><%= error %></div>
+        <% } %>
+
+        <% if (typeof success !== 'undefined' && success) { %>
+            <div class="alert alert-success"><%= success %></div>
+        <% } %>
+
+        <form action="/gps-settings" method="POST">
+            <div class="form-group">
+                <label>Nama Kelas</label>
+                <input type="text" name="class_name" class="form-control" placeholder="Contoh: Informatika A" required>
+            </div>
+
+            <div class="form-group">
+                <label>Radius Absensi</label>
+                <input type="number" name="radius_meters" class="form-control" value="50" min="1" required>
+            </div>
+
+            <div class="form-group">
+                <label>Latitude</label>
+                <input type="text" name="latitude" id="latitude" class="form-control disabled-input" readonly required>
+            </div>
+
+            <div class="form-group">
+                <label>Longitude</label>
+                <input type="text" name="longitude" id="longitude" class="form-control disabled-input" readonly required>
+            </div>
+
+            <button type="submit" class="btn-primary">Simpan Lokasi Jujur</button>
+        </form>
+    </section>
+</main>
+
+<script>
+    navigator.geolocation.getCurrentPosition(
+        function(position) {
+            document.getElementById('latitude').value = position.coords.latitude;
+            document.getElementById('longitude').value = position.coords.longitude;
+        },
+        function() {
+            alert('Gagal mengambil lokasi. Aktifkan GPS dan izinkan akses lokasi.');
+        },
+        {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        }
+    );
+</script>
+
+</body>
+</html>

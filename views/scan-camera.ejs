@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan QR | Al-Muraqabah</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body>
+
+<%- include('partials/navbar') %>
+
+<main class="main-content">
+    <section class="content-card form-card text-center">
+        <span class="value-badge">Shidiq dalam Kehadiran</span>
+        <h2>📷 Scan QR Absensi</h2>
+
+        <div class="islamic-message-box">
+            <h3>Iman ke Aksi</h3>
+            <p>
+                Kehadiran ini bukan sekadar tercatat oleh sistem,
+                tetapi menjadi bentuk kejujuran dan amanah dalam menuntut ilmu.
+            </p>
+        </div>
+
+        <div class="info-box">
+            Arahkan kamera ke QR Code yang ditampilkan dosen. Pastikan Anda melakukan scan sendiri.
+        </div>
+
+        <div id="qr-reader" class="qr-reader-box"></div>
+
+        <p id="scan-status" class="info">Menunggu kamera aktif...</p>
+
+        <a href="/dashboard" class="btn-secondary">Kembali ke Dashboard</a>
+    </section>
+</main>
+
+<script>
+    const scanStatus = document.getElementById('scan-status');
+
+    function onScanSuccess(decodedText) {
+        scanStatus.innerText = 'QR berhasil dipindai. Mengalihkan ke validasi amanah...';
+
+        html5QrCode.stop().then(() => {
+            window.location.href = decodedText;
+        }).catch(() => {
+            window.location.href = decodedText;
+        });
+    }
+
+    function onScanFailure(error) {}
+
+    const html5QrCode = new Html5Qrcode("qr-reader");
+
+    Html5Qrcode.getCameras()
+        .then(cameras => {
+            if (!cameras || cameras.length === 0) {
+                scanStatus.innerText = 'Kamera tidak ditemukan.';
+                return;
+            }
+
+            const cameraId = cameras[0].id;
+
+            html5QrCode.start(
+                cameraId,
+                {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 }
+                },
+                onScanSuccess,
+                onScanFailure
+            );
+
+            scanStatus.innerText = 'Kamera aktif. Silakan scan QR dengan jujur.';
+        })
+        .catch(err => {
+            scanStatus.innerText = 'Gagal membuka kamera. Izinkan akses kamera di browser.';
+        });
+</script>
+
+</body>
+</html>

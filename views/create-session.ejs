@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buat Sesi | Al-Muraqabah</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<%- include('partials/navbar') %>
+
+<main class="main-content">
+    <section class="content-card form-card">
+        <span class="value-badge">Amanah Akademik</span>
+        <h2>📝 Buat Sesi Pertemuan</h2>
+
+        <div class="islamic-message-box">
+            <h3>Sesi sebagai Amanah</h3>
+            <p>
+                Setiap sesi menjadi ruang untuk menumbuhkan kedisiplinan, kejujuran,
+                dan tanggung jawab dalam proses belajar.
+            </p>
+        </div>
+
+        <% if (error) { %>
+            <div class="alert alert-error"><%= error %></div>
+        <% } %>
+
+        <form action="/create-session" method="POST">
+            <div class="form-group">
+                <label>Judul Pertemuan</label>
+                <input type="text" name="judul" class="form-control" placeholder="Contoh: Pertemuan 1 - Pengantar Sistem" required>
+            </div>
+
+            <div class="form-group">
+                <label>Masa Berlaku Sesi</label>
+                <input type="number" name="expires_minutes" class="form-control" value="60" min="1" required>
+            </div>
+
+            <button type="submit" class="btn-primary">Buat Sesi Amanah</button>
+        </form>
+    </section>
+</main>
+
+</body>
+</html>

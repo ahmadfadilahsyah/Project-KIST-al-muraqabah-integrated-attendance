@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Set Lokasi Kelas</title>
+
+    <style>
+        body{
+            font-family: Arial;
+            padding:40px;
+            background:#f5f5f5;
+        }
+
+        .card{
+            background:white;
+            padding:30px;
+            border-radius:12px;
+            max-width:500px;
+            margin:auto;
+        }
+
+        input{
+            width:100%;
+            padding:12px;
+            margin-top:10px;
+            margin-bottom:20px;
+        }
+
+        button{
+            padding:12px 20px;
+            border:none;
+            background:#2563eb;
+            color:white;
+            border-radius:8px;
+            cursor:pointer;
+        }
+
+        .coords{
+            background:#eee;
+            padding:10px;
+            border-radius:8px;
+            margin-bottom:20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+
+    <h2>Set Lokasi Kelas</h2>
+
+    <form method="POST">
+
+        <label>Nama Kelas</label>
+        <input type="text" name="class_name" required>
+
+        <label>Radius Absensi (meter)</label>
+        <input type="number" name="radius_meters" value="50">
+
+        <div class="coords">
+            <strong>Latitude:</strong>
+            <span id="latText">Mendeteksi...</span>
+            <br><br>
+
+            <strong>Longitude:</strong>
+            <span id="lngText">Mendeteksi...</span>
+        </div>
+
+        <input type="hidden" name="latitude" id="latitude">
+        <input type="hidden" name="longitude" id="longitude">
+
+        <button type="submit">
+            Simpan Lokasi
+        </button>
+
+    </form>
+
+</div>
+
+<script>
+
+navigator.geolocation.getCurrentPosition(
+
+    (position) => {
+
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+
+        document.getElementById('latitude').value = lat;
+        document.getElementById('longitude').value = lng;
+
+        document.getElementById('latText').innerText = lat;
+        document.getElementById('lngText').innerText = lng;
+    },
+
+    (error) => {
+
+        alert('Gagal mengambil lokasi. Aktifkan GPS.');
+    },
+
+    {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+    }
+);
+
+</script>
+
+</body>
+</html>

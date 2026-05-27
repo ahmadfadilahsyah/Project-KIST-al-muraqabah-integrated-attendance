@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status Absensi | Al-Muraqabah</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<%- include('partials/navbar') %>
+
+<main class="main-content">
+    <section class="content-card form-card text-center">
+        <% if (success === true || success === 'true') { %>
+            <span class="value-badge">Amanah Tercatat</span>
+            <h2>✅ Absensi Berhasil</h2>
+
+            <div class="islamic-message-box">
+                <h3>Semoga Menjadi Ilmu yang Bermanfaat</h3>
+                <p>
+                    Kehadiran yang jujur adalah bagian dari ikhtiar menuntut ilmu
+                    dengan penuh tanggung jawab.
+                </p>
+            </div>
+
+            <div class="alert alert-success">
+                <%= message || 'Absensi berhasil disimpan.' %>
+            </div>
+        <% } else { %>
+            <span class="value-badge">Evaluasi Kejujuran</span>
+            <h2>❌ Absensi Gagal</h2>
+
+            <div class="islamic-message-box">
+                <h3>Jujur adalah Bagian dari Amanah</h3>
+                <p>
+                    Silakan periksa kembali QR, lokasi, dan status kehadiran Anda.
+                </p>
+            </div>
+
+            <div class="alert alert-error">
+                <%= message || 'Absensi gagal diproses.' %>
+            </div>
+        <% } %>
+
+        <a href="/dashboard" class="btn-primary">Kembali ke Dashboard</a>
+    </section>
+</main>
+
+</body>
+</html>

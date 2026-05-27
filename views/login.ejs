@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Masuk - Al-Muraqabah</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="card">
+    <div class="logo">
+        <h1>📿 Al-Muraqabah</h1>
+        <p>Sistem Absensi Digital</p>
+    </div>
+    <h2>Masuk</h2>
+    <% if (error) { %>
+        <div class="error"><%= error %></div>
+    <% } %>
+    <form action="/login" method="post">
+        <div class="input-group">
+            <label>NIM</label>
+            <input type="text" name="nim" placeholder="Contoh: D001 atau 202401001" required autofocus>
+        </div>
+        <div class="input-group">
+            <label>Password</label>
+            <input type="password" name="password" placeholder="********" required>
+        </div>
+        <button type="submit">Login</button>
+    </form>
+    <div class="footer">
+        Belum punya akun? <a href="/register">Daftar sekarang</a>
+    </div>
+</div>
+</body>
+</html>
