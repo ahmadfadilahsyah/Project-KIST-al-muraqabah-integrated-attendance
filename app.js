@@ -20,6 +20,7 @@ const access = require('./utils/access');
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -37,6 +38,14 @@ app.use(session({
         maxAge: 1000 * 60 * 60 * 24
     }
 }));
+
+// Mencegah halaman dashboard tersimpan di cache browser setelah logout
+app.use((req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    next();
+});
 
 app.use((req, res, next) => {
     res.locals.user = req.session.user || null;

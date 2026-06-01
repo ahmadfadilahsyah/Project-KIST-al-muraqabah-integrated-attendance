@@ -247,7 +247,17 @@ router.post('/profile', (req, res) => {
 });
 
 router.get('/logout', (req, res) => {
-    req.session.destroy(() => res.redirect('/login'));
+    req.session.destroy((err) => {
+        res.clearCookie('connect.sid');
+
+        if (err) {
+            console.error('Logout error:', err);
+            return res.redirect('/dashboard');
+        }
+
+        res.setHeader('Cache-Control', 'no-store');
+        res.redirect('/');
+    });
 });
 
 module.exports = router;
