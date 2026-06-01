@@ -73,7 +73,10 @@ function requireSessionCreator(req, res, next) {
                 return res.status(500).send('Gagal memeriksa akses sesi.');
             }
             if (!subjects || subjects.length === 0) {
-                return res.status(403).send('Anda belum memiliki akses membuat sesi. Admin/Kosma perlu menghubungkan Anda ke mata kuliah.');
+                return res.status(403).render('access-denied', {
+                    pageTitle: 'Akses Belum Tersedia',
+                    pageSubtitle: 'Akun Anda belum terhubung ke mata kuliah.'
+                });
             }
             req.allowedSubjects = subjects;
             next();
