@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelola Mata Kuliah | Al-Muraqabah</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<%- include('partials/navbar') %>
+
+<main class="main-content">
+    <section class="content-card islamic-hero">
+        <span class="value-badge">Kelola Amanah Akademik</span>
+        <h2><%= subject.name %></h2>
+        <p>Atur dosen pengampu dan PJ mata kuliah agar sesi absensi berjalan tertib dan terukur.</p>
+        <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
+        <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+    </section>
+
+    <section class="content-grid two-column">
+        <div class="content-card no-margin">
+            <span class="value-badge">Dosen</span>
+            <h2>Dosen Pengampu</h2>
+            <form action="/subjects/<%= subject.id %>/lecturer/add" method="POST" class="mini-form">
+                <div class="form-group">
+                    <label>Pilih Dosen</label>
+                    <select name="lecturer_nim" class="form-control" required>
+                        <option value="">-- Pilih Dosen --</option>
+                        <% lecturers.forEach(lecturer => { %>
+                            <option value="<%= lecturer.nim %>"><%= lecturer.nim %> - <%= lecturer.nama %></option>
+                        <% }) %>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Tahun Akademik</label>
+                        <input name="academic_year" class="form-control" value="2024/2025">
+                    </div>
+                    <div class="form-group">
+                        <label>Semester</label>
+                        <input name="semester" type="number" class="form-control" value="<%= subject.semester || '' %>">
+                    </div>
+                </div>
+                <button class="btn-primary" type="submit">Tambah Dosen</button>
+            </form>
+
+            <div class="relation-list">
+                <% if (!subjectLecturers || subjectLecturers.length === 0) { %>
+                    <div class="empty-state">Belum ada dosen pengampu.</div>
+                <% } %>
+                <% subjectLecturers.forEach(item => { %>
+                    <div class="relation-item">
+                        <div>
+                            <strong><%= item.nama %></strong>
+                            <span><%= item.lecturer_nim %> · <%= item.academic_year || '-' %></span>
+                        </div>
+                        <form action="/subjects/<%= subject.id %>/lecturer/<%= item.id %>/delete" method="POST">
+                            <button class="btn-small-danger" type="submit">Cabut</button>
+                        </form>
+                    </div>
+                <% }) %>
+            </div>
+        </div>
+
+        <div class="content-card no-margin">
+            <span class="value-badge">PJ</span>
+            <h2>PJ Mata Kuliah</h2>
+            <form action="/subjects/<%= subject.id %>/pj/add" method="POST" class="mini-form">
+                <div class="form-group">
+                    <label>Pilih Mahasiswa</label>
+                    <select name="student_nim" class="form-control" required>
+                        <option value="">-- Pilih Mahasiswa --</option>
+                        <% students.forEach(student => { %>
+                            <option value="<%= student.nim %>"><%= student.nim %> - <%= student.nama %></option>
+                        <% }) %>
+                    </select>
+                </div>
+                <button class="btn-primary" type="submit">Tambah PJ</button>
+            </form>
+
+            <div class="relation-list">
+                <% if (!pjs || pjs.length === 0) { %>
+                    <div class="empty-state">Belum ada PJ.</div>
+                <% } %>
+                <% pjs.forEach(item => { %>
+                    <div class="relation-item">
+                        <div>
+                            <strong><%= item.nama %></strong>
+                            <span><%= item.student_nim %></span>
+                        </div>
+                        <form action="/subjects/<%= subject.id %>/pj/<%= item.id %>/delete" method="POST">
+                            <button class="btn-small-danger" type="submit">Cabut</button>
+                        </form>
+                    </div>
+                <% }) %>
+            </div>
+        </div>
+    </section>
+
+    <a href="/subjects" class="btn-secondary">Kembali ke Mata Kuliah</a>
+</main>
+</body>
+</html>

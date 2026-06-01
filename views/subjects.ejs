@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mata Kuliah | Al-Muraqabah</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<%- include('partials/navbar') %>
+
+<main class="main-content">
+    <section class="content-card islamic-hero">
+        <div class="dashboard-section-header">
+            <div>
+                <span class="value-badge">Akademik Terpadu</span>
+                <h2>📚 Mata Kuliah Informatika A 2024</h2>
+                <p>Mahasiswa dapat melihat dosen, PJ, dan jadwal. Admin/Kosma mengelola struktur mata kuliah.</p>
+            </div>
+            <% if (canManage) { %>
+                <a href="/subjects/create" class="btn-primary">Tambah Mata Kuliah</a>
+            <% } %>
+        </div>
+        <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
+        <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+    </section>
+
+    <section class="subject-card-grid">
+        <% if (!subjects || subjects.length === 0) { %>
+            <div class="content-card empty-state">Belum ada mata kuliah.</div>
+        <% } else { %>
+            <% subjects.forEach(subject => { %>
+                <article class="subject-card">
+                    <div class="subject-card-head">
+                        <span class="value-badge"><%= subject.code || 'MK' %></span>
+                        <span class="status-pill <%= subject.status === 'active' ? 'status-active' : 'status-inactive' %>"><%= subject.status || 'active' %></span>
+                    </div>
+                    <h3><%= subject.name %></h3>
+                    <div class="subject-meta">
+                        <div><span>Semester</span><strong><%= subject.semester || '-' %></strong></div>
+                        <div><span>Dosen</span><strong><%= subject.lecturers || 'Belum diatur' %></strong></div>
+                        <div><span>PJ</span><strong><%= subject.pjs || 'Belum diatur' %></strong></div>
+                        <div><span>Jadwal</span><strong><%= subject.schedule_info || 'Belum diatur' %></strong></div>
+                    </div>
+                    <% if (canManage) { %>
+                        <div class="button-row">
+                            <a href="/subjects/<%= subject.id %>/edit" class="btn-secondary">Edit</a>
+                            <a href="/subjects/<%= subject.id %>/manage" class="btn-secondary">Kelola PJ & Dosen</a>
+                        </div>
+                    <% } %>
+                </article>
+            <% }) %>
+        <% } %>
+    </section>
+</main>
+</body>
+</html>

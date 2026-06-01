@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Absensi | Al-Muraqabah</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<%- include('partials/navbar') %>
+
+<main class="main-content">
+    <section class="content-card qr-page-card">
+        <div class="qr-header">
+            <div>
+                <span class="value-badge">QR Dinamis · Amanah Digital</span>
+                <h2>📱 QR Absensi</h2>
+                <p>QR dapat discan banyak mahasiswa, tetapi setiap akun hanya dapat absen satu kali per sesi.</p>
+            </div>
+            <a href="/dashboard" class="btn-secondary">Kembali</a>
+        </div>
+
+        <div class="qr-session-info">
+            <div><span>Mata Kuliah</span><strong><%= session.subject_name || '-' %></strong></div>
+            <div><span>Pertemuan</span><strong><%= session.judul || 'Tanpa Judul' %></strong></div>
+            <div><span>Berakhir</span><strong><%= session.expires_at %></strong></div>
+        </div>
+
+        <% if (!classSetting || !classSetting.latitude || !classSetting.longitude) { %>
+            <div class="alert alert-error">Lokasi kelas belum diatur. Absensi GPS akan gagal sampai admin/kosma/dosen menyimpan titik kelas.</div>
+        <% } else { %>
+            <div class="alert alert-success">Lokasi kelas aktif: <%= classSetting.class_name || 'Lokasi Kelas' %> · Radius 75 meter.</div>
+        <% } %>
+
+        <% if (canUseCreatorButton) { %>
+            <div class="islamic-message-box">
+                <h3>Status Kehadiran Pembuat Sesi</h3>
+                <% if (ownAttendance) { %>
+                    <p>✅ Kamu sudah tercatat hadir dengan metode <strong><%= ownAttendance.method %></strong>.</p>
+                <% } else { %>
+                    <p>Kamu adalah pembuat sesi. Klik tombol berikut agar kehadiranmu tercatat. GPS tetap wajib valid.</p>
+                    <button type="button" class="btn-primary" onclick="creatorPresent()">Saya Hadir</button>
+                    <p id="creatorStatus" class="info"></p>
+                <% } %>
+            </div>
+        <% } %>
+
+        <div class="qr-display-box">
+            <div id="qr-loading" class="qr-loading">Membuat QR Code...</div>
+            <img id="qr-image" src="" alt="QR Code Absensi" style="display:none;">
+        </div>
+
+        <div class="qr-footer-info">
+            <p>QR diperbarui otomatis setiap <strong>30 detik</strong>. Token aktif singkat untuk mengurangi penyebaran screenshot.</p>
+            <p id="qr-status">Menunggu QR aktif...</p>
+        </div>
+    </section>
+</main>
+
+<script>
+    const sessionId = '<%= session.id %>';
+    const qrImage = document.getElementById('qr-image');
+    const qrLoading = document.getElementById('qr-loading');
+    const qrStatus = document.getElementById('qr-status');
+
+    async function loadQrCode() {
+        try {
+            qrLoading.style.display = 'block';
+            qrLoading.innerText = 'Membuat QR Code...';
+            qrStatus.innerText = 'Memperbarui QR Code...';
+
+            const response = await fetch(`/api/qr-token/${sessionId}`, { headers: { 'Accept': 'application/json' } });
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                qrImage.style.display = 'none';
+                qrLoading.style.display = 'block';
+                qrLoading.innerText = data.message || 'Gagal membuat QR Code.';
+                qrStatus.innerText = 'QR tidak aktif.';
+                return;
+            }
+
+            qrImage.src = data.qrCode;
+            qrImage.style.display = 'block';
+            qrLoading.style.display = 'none';
+            qrStatus.innerText = 'QR aktif. Silakan scan menggunakan akun mahasiswa.';
+        } catch (error) {
+            qrImage.style.display = 'none';
+            qrLoading.style.display = 'block';
+            qrLoading.innerText = 'Gagal memuat QR Code.';
+            qrStatus.innerText = 'Terjadi kesalahan koneksi.';
+        }
+    }
+
+    async function creatorPresent() {
+        const status = document.getElementById('creatorStatus');
+        status.innerText = 'Mengambil lokasi GPS...';
+
+        if (!navigator.geolocation) {
+            status.innerText = 'Browser tidak mendukung GPS.';
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(async function(position) {
+            try {
+                const response = await fetch(`/api/creator-present/${sessionId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                        gps_accuracy: position.coords.accuracy
+                    })
+                });
+                const data = await response.json();
+                status.innerText = data.message || 'Selesai.';
+                if (data.success) setTimeout(() => window.location.reload(), 1200);
+            } catch (error) {
+                status.innerText = 'Gagal mengirim kehadiran.';
+            }
+        }, function() {
+            status.innerText = 'Gagal mengambil GPS. Pastikan izin lokasi aktif.';
+        }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+    }
+
+    loadQrCode();
+    setInterval(loadQrCode, 30000);
+</script>
+</body>
+</html>

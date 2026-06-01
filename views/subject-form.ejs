@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= pageTitle %> | Al-Muraqabah</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<%- include('partials/navbar') %>
+
+<main class="main-content">
+    <section class="content-card form-card wide-form">
+        <span class="value-badge">Mata Kuliah</span>
+        <h2><%= pageTitle %></h2>
+        <p><%= pageSubtitle || 'Kelola data mata kuliah Informatika A 2024.' %></p>
+
+        <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+
+        <form action="<%= action %>" method="POST">
+            <div class="form-section-title">Informasi Mata Kuliah</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Kode Mata Kuliah</label>
+                    <input type="text" name="code" class="form-control" value="<%= subject.code || '' %>" placeholder="Contoh: IF2401">
+                </div>
+                <div class="form-group">
+                    <label>Semester</label>
+                    <input type="number" name="semester" class="form-control" value="<%= subject.semester || '' %>" min="1" placeholder="Contoh: 1">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Nama Mata Kuliah</label>
+                <input type="text" name="name" class="form-control" value="<%= subject.name || '' %>" placeholder="Contoh: Pemrograman Web" required>
+            </div>
+
+            <div class="form-group">
+                <label>Status</label>
+                <select name="status" class="form-control">
+                    <option value="active" <%= subject.status === 'active' || !subject.status ? 'selected' : '' %>>Active</option>
+                    <option value="inactive" <%= subject.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+                </select>
+            </div>
+
+            <div class="form-section-title">Dosen dan PJ</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Dosen Pengampu</label>
+                    <select name="lecturer_nim" class="form-control">
+                        <option value="">-- Pilih Dosen --</option>
+                        <% (lecturers || []).forEach(lecturer => { %>
+                            <option value="<%= lecturer.nim %>" <%= selectedLecturer === lecturer.nim ? 'selected' : '' %>><%= lecturer.nim %> - <%= lecturer.nama %></option>
+                        <% }) %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>PJ Mata Kuliah</label>
+                    <select name="pj_nim" class="form-control">
+                        <option value="">-- Pilih PJ --</option>
+                        <% (students || []).forEach(student => { %>
+                            <option value="<%= student.nim %>" <%= selectedPJ === student.nim ? 'selected' : '' %>><%= student.nim %> - <%= student.nama %></option>
+                        <% }) %>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Tahun Akademik</label>
+                    <input type="text" name="academic_year" class="form-control" value="2024/2025" placeholder="Contoh: 2024/2025">
+                </div>
+                <input type="hidden" name="schedule_semester" value="<%= subject.semester || '' %>">
+            </div>
+
+            <div class="form-section-title">Jadwal Perkuliahan</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Hari</label>
+                    <select name="day" class="form-control">
+                        <option value="">-- Pilih Hari --</option>
+                        <% ['Senin','Selasa','Rabu','Kamis','Jumat','Sabtu','Minggu'].forEach(day => { %>
+                            <option value="<%= day %>" <%= schedule && schedule.day === day ? 'selected' : '' %>><%= day %></option>
+                        <% }) %>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Ruangan</label>
+                    <input type="text" name="room" class="form-control" value="<%= schedule && schedule.room ? schedule.room : '' %>" placeholder="Contoh: Lab Komputer 1">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Jam Mulai</label>
+                    <input type="time" name="start_time" class="form-control" value="<%= schedule && schedule.start_time ? schedule.start_time : '' %>">
+                </div>
+                <div class="form-group">
+                    <label>Jam Selesai</label>
+                    <input type="time" name="end_time" class="form-control" value="<%= schedule && schedule.end_time ? schedule.end_time : '' %>">
+                </div>
+            </div>
+
+            <div class="button-row">
+                <button type="submit" class="btn-primary">Simpan</button>
+                <a href="/subjects" class="btn-secondary">Batal</a>
+            </div>
+        </form>
+    </section>
+</main>
+</body>
+</html>

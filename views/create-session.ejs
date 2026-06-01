@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buat Sesi | Al-Muraqabah</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<%- include('partials/navbar') %>
+
+<main class="main-content">
+    <section class="content-card islamic-hero">
+        <span class="value-badge">Dari Iman ke Aksi</span>
+        <h2>📝 Buat Sesi Absensi</h2>
+        <p>Absensi bukan sekadar data. Ini adalah latihan amanah: teknologi membantu mencatat, iman menjaga kejujuran.</p>
+    </section>
+
+    <section class="content-grid two-column">
+        <div class="content-card form-card no-margin">
+            <span class="value-badge">QR + GPS Attendance</span>
+            <h2>Detail Sesi</h2>
+
+            <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+            <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
+
+            <form action="/create-session" method="POST">
+                <div class="form-group">
+                    <label>Mata Kuliah</label>
+                    <select name="subject_id" class="form-control" required>
+                        <option value="">Pilih mata kuliah</option>
+                        <% subjects.forEach(subject => { %>
+                            <option value="<%= subject.id %>"><%= subject.code ? subject.code + ' - ' : '' %><%= subject.name %></option>
+                        <% }) %>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Judul Pertemuan</label>
+                    <input type="text" name="judul" class="form-control" placeholder="Contoh: Pertemuan 5 - Praktikum dan Diskusi" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Durasi Sesi (menit)</label>
+                        <input type="number" name="expires_minutes" class="form-control" value="<%= setting.default_session_minute || 60 %>" min="<%= setting.min_session_minute || 15 %>" max="<%= setting.max_session_minute || 120 %>" required>
+                    </div>
+                    <div class="form-group">
+                        <label>QR Refresh</label>
+                        <input type="text" class="form-control disabled-input" value="30 detik" disabled>
+                    </div>
+                </div>
+
+                <p class="info">Durasi dapat diatur antara <%= setting.min_session_minute || 15 %> sampai <%= setting.max_session_minute || 120 %> menit. Default sistem: <%= setting.default_session_minute || 60 %> menit.</p>
+
+                <div class="button-row">
+                    <button type="submit" class="btn-primary">Buat Sesi & Tampilkan QR</button>
+                    <a href="/dashboard" class="btn-secondary">Kembali</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="content-card no-margin">
+            <span class="value-badge">Titik Kelas</span>
+            <h2>📍 Lokasi GPS</h2>
+            <% if (classSetting && classSetting.latitude && classSetting.longitude) { %>
+                <div class="status-panel success-panel">
+                    <strong>Lokasi kelas sudah aktif</strong>
+                    <p><%= classSetting.class_name || 'Lokasi Kelas Informatika A 2024' %></p>
+                    <small>Lat: <%= Number(classSetting.latitude).toFixed(6) %>, Lng: <%= Number(classSetting.longitude).toFixed(6) %> · Radius 75m</small>
+                </div>
+            <% } else { %>
+                <div class="status-panel warning-panel">
+                    <strong>Lokasi kelas belum diatur</strong>
+                    <p>Absensi QR dan tombol Saya Hadir akan gagal sampai titik kelas disimpan.</p>
+                </div>
+            <% } %>
+
+            <div class="islamic-message-box">
+                <h3>Set lokasi dari kelas</h3>
+                <p>Tekan tombol ini ketika Anda sudah berada di ruang kelas. Sistem akan memakai GPS perangkat sebagai titik validasi absensi.</p>
+            </div>
+
+            <div class="form-group">
+                <label>Nama Lokasi</label>
+                <input id="quickClassName" class="form-control" value="<%= classSetting && classSetting.class_name ? classSetting.class_name : 'Ruang Kelas Informatika A 2024' %>">
+            </div>
+
+            <button type="button" class="btn-secondary" onclick="setCurrentClassLocation()">Gunakan Lokasi Saya</button>
+            <p id="locationStatus" class="info"></p>
+            <a href="/gps-settings" class="btn-link-clean">Buka pengaturan lokasi lengkap</a>
+        </div>
+    </section>
+</main>
+
+<script>
+async function setCurrentClassLocation() {
+    const status = document.getElementById('locationStatus');
+    const className = document.getElementById('quickClassName').value;
+
+    if (!navigator.geolocation) {
+        status.innerText = 'Browser tidak mendukung GPS.';
+        return;
+    }
+
+    status.innerText = 'Mengambil lokasi presisi tinggi...';
+    navigator.geolocation.getCurrentPosition(async (position) => {
+        try {
+            const response = await fetch('/api/class-location', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    class_name: className,
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                    gps_accuracy: position.coords.accuracy
+                })
+            });
+            const data = await response.json();
+            status.innerText = data.message || 'Selesai.';
+            if (data.success) setTimeout(() => location.reload(), 1000);
+        } catch (error) {
+            status.innerText = 'Gagal menyimpan lokasi kelas.';
+        }
+    }, () => {
+        status.innerText = 'Gagal mengambil GPS. Izinkan akses lokasi pada browser.';
+    }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+}
+</script>
+</body>
+</html>

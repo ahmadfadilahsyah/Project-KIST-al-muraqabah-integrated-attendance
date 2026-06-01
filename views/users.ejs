@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen User | Al-Muraqabah</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<%- include('partials/navbar') %>
+<main class="main-content">
+    <section class="content-card">
+        <div class="dashboard-section-header">
+            <div>
+                <span class="value-badge">Role Management</span>
+                <h2>👥 Manajemen User</h2>
+                <p>Admin dapat membuat dosen dan mahasiswa. Kosma dapat mengelola mahasiswa.</p>
+            </div>
+            <a href="/users/create" class="btn-primary">Tambah User</a>
+        </div>
+
+        <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
+        <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+
+        <div class="table-wrapper">
+            <table>
+                <thead><tr><th>Username/NIM</th><th>Nama</th><th>Email</th><th>Role</th><th>Kosma</th><th>Status</th><th>Aksi</th></tr></thead>
+                <tbody>
+                    <% users.forEach(item => { %>
+                        <tr>
+                            <td><%= item.nim %></td>
+                            <td><strong><%= item.nama %></strong></td>
+                            <td><%= item.email || '-' %></td>
+                            <td><%= item.role %></td>
+                            <td><%= item.is_kosma ? 'Ya' : '-' %></td>
+                            <td><span class="badge <%= item.status === 'active' ? 'hadir' : 'alpha' %>"><%= item.status %></span></td>
+                            <td>
+                                <div class="table-actions">
+                                    <a class="btn-small" href="/users/<%= item.nim %>/edit">Edit</a>
+                                    <% if (currentUser.role === 'admin' && item.role === 'student') { %>
+                                        <% if (item.is_kosma) { %>
+                                            <form action="/users/<%= item.nim %>/kosma/remove" method="POST"><button class="btn-small-danger" type="submit">Cabut Kosma</button></form>
+                                        <% } else { %>
+                                            <form action="/users/<%= item.nim %>/kosma" method="POST"><button class="btn-small" type="submit">Jadikan Kosma</button></form>
+                                        <% } %>
+                                    <% } %>
+                                </div>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+</body>
+</html>

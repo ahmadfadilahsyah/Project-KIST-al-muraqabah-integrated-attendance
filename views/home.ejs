@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= profile.class_name || 'Informatika A 2024' %> | Al-Muraqabah</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="public-page">
+    <header class="public-nav">
+        <div class="public-brand">
+            <% if (profile.logo_url) { %>
+                <img src="<%= profile.logo_url %>" alt="Logo kelas" class="public-logo-img">
+            <% } else { %>
+                <div class="brand-logo">A</div>
+            <% } %>
+            <div>
+                <strong><%= profile.class_name || 'Informatika A 2024' %></strong>
+                <small><%= profile.generation || 'Angkatan 2024' %> · Portal Digital Kelas</small>
+            </div>
+        </div>
+        <div class="public-nav-actions">
+            <% if (profile.instagram_url) { %>
+                <a href="<%= profile.instagram_url %>" target="_blank" rel="noopener" class="btn-secondary">Instagram</a>
+            <% } %>
+            <a href="/login" class="btn-primary">Login</a>
+        </div>
+    </header>
+
+    <main class="public-main">
+        <section class="public-hero <%= profile.hero_image_url ? 'public-hero-with-image' : '' %>" <% if (profile.hero_image_url) { %>style="background-image: linear-gradient(135deg, rgba(15, 23, 42, .70), rgba(22, 101, 52, .70)), url('<%= profile.hero_image_url %>');"<% } %>>
+            <span class="value-badge">Al-Muraqabah Class Portal</span>
+            <h1><%= profile.class_name || 'Website Kelas Informatika A 2024' %></h1>
+            <p><%= profile.description || 'Pusat informasi kelas, jadwal, pengumuman, dokumentasi kegiatan, dan absensi digital berbasis QR Code serta GPS.' %></p>
+            <div class="button-row center">
+                <a href="/login" class="btn-primary">Masuk Dashboard</a>
+                <a href="#profil" class="btn-secondary">Lihat Profil Kelas</a>
+            </div>
+        </section>
+
+        <section class="public-stats">
+            <div class="stat-card"><p>Mahasiswa Aktif</p><h2><%= stats.totalMahasiswa || 0 %></h2></div>
+            <div class="stat-card"><p>Dosen Aktif</p><h2><%= stats.totalDosen || 0 %></h2></div>
+            <div class="stat-card"><p>Mata Kuliah</p><h2><%= stats.totalMatkul || 0 %></h2></div>
+        </section>
+
+        <section id="profil" class="content-card public-card">
+            <h2>Tentang Kelas</h2>
+            <p><%= profile.description || 'Informatika A 2024 adalah kelas yang berfokus pada kolaborasi, disiplin akademik, dan pengembangan kompetensi informatika. Portal ini menjadi ruang digital untuk mendukung kegiatan kelas secara transparan dan terstruktur.' %></p>
+            <div class="public-contact-row">
+                <% if (profile.instagram_url) { %>
+                    <a href="<%= profile.instagram_url %>" target="_blank" rel="noopener" class="btn-secondary">📸 Instagram Kelas</a>
+                <% } %>
+                <% if (profile.email) { %>
+                    <a href="mailto:<%= profile.email %>" class="btn-secondary">✉️ <%= profile.email %></a>
+                <% } %>
+            </div>
+        </section>
+
+        <section class="public-grid">
+            <div class="content-card inner-card">
+                <h2>📢 Pengumuman Terbaru</h2>
+                <% if (announcements && announcements.length) { %>
+                    <div class="public-list">
+                        <% announcements.forEach(item => { %>
+                            <article class="public-list-item">
+                                <strong><%= item.title %></strong>
+                                <p><%= item.content.length > 120 ? item.content.substring(0, 120) + '...' : item.content %></p>
+                            </article>
+                        <% }) %>
+                    </div>
+                <% } else { %>
+                    <p>Belum ada pengumuman publik.</p>
+                <% } %>
+            </div>
+
+            <div class="content-card inner-card">
+                <h2>📅 Jadwal Kuliah</h2>
+                <% if (schedules && schedules.length) { %>
+                    <div class="public-list">
+                        <% schedules.forEach(item => { %>
+                            <article class="public-list-item">
+                                <strong><%= item.day %> · <%= item.start_time || '-' %> - <%= item.end_time || '-' %></strong>
+                                <p><%= item.subject_name || 'Mata kuliah' %><% if (item.room) { %> · <%= item.room %><% } %></p>
+                            </article>
+                        <% }) %>
+                    </div>
+                <% } else { %>
+                    <p>Jadwal akan tampil setelah admin/kosma mengisi data.</p>
+                <% } %>
+            </div>
+
+            <div class="content-card inner-card">
+                <h2>✅ Absensi Digital</h2>
+                <p>Sistem absensi memakai QR dinamis dan validasi GPS radius 75 meter. PJ dapat memakai tombol <strong>Saya Hadir</strong> dengan validasi lokasi yang sama.</p>
+            </div>
+        </section>
+
+        <section class="content-card public-card">
+            <div class="dashboard-section-header">
+                <div>
+                    <h2>Galeri Kegiatan</h2>
+                    <p>Dokumentasi kegiatan dan momen kelas.</p>
+                </div>
+            </div>
+
+            <% if (galleries && galleries.length) { %>
+                <div class="gallery-grid">
+                    <% galleries.forEach(item => { %>
+                        <article class="gallery-card">
+                            <img src="<%= item.image_url %>" alt="<%= item.title %>">
+                            <div>
+                                <strong><%= item.title %></strong>
+                                <% if (item.description) { %><p><%= item.description %></p><% } %>
+                            </div>
+                        </article>
+                    <% }) %>
+                </div>
+            <% } else { %>
+                <div class="empty-state">Belum ada galeri publik.</div>
+            <% } %>
+        </section>
+    </main>
+
+    <footer class="public-footer">
+        <strong><%= profile.class_name || 'Informatika A 2024' %></strong>
+        <span>Al-Muraqabah Class Portal</span>
+        <% if (profile.instagram_url) { %>
+            <a href="<%= profile.instagram_url %>" target="_blank" rel="noopener">@abstractbanget</a>
+        <% } %>
+    </footer>
+</body>
+</html>

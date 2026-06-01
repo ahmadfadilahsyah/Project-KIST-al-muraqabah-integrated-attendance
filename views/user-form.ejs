@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= pageTitle %> | Al-Muraqabah</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<%- include('partials/navbar') %>
+<main class="main-content">
+    <section class="content-card form-card">
+        <span class="value-badge">User</span>
+        <h2><%= pageTitle %></h2>
+        <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+
+        <form action="<%= action %>" method="POST">
+            <div class="form-group">
+                <label>Username / NIM</label>
+                <input type="text" name="nim" class="form-control" value="<%= target.nim || '' %>" <%= target.nim ? 'readonly' : '' %> required>
+            </div>
+            <div class="form-group">
+                <label>Nama</label>
+                <input type="text" name="nama" class="form-control" value="<%= target.nama || '' %>" required>
+            </div>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" class="form-control" value="<%= target.email || '' %>">
+            </div>
+            <% if (!target.nim) { %>
+                <div class="form-group">
+                    <label>Password Awal</label>
+                    <input type="text" name="password" class="form-control" required minlength="6">
+                </div>
+            <% } %>
+            <div class="form-group">
+                <label>Role Utama</label>
+                <select name="role" class="form-control">
+                    <option value="student" <%= target.role === 'student' || !target.role ? 'selected' : '' %>>Mahasiswa</option>
+                    <% if (currentUser.role === 'admin') { %>
+                        <option value="lecturer" <%= target.role === 'lecturer' ? 'selected' : '' %>>Dosen</option>
+                        <option value="admin" <%= target.role === 'admin' ? 'selected' : '' %>>Admin</option>
+                    <% } %>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Status</label>
+                <select name="status" class="form-control">
+                    <option value="active" <%= target.status === 'active' || !target.status ? 'selected' : '' %>>Active</option>
+                    <option value="inactive" <%= target.status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label><input type="checkbox" name="must_change_password" value="1" <%= target.must_change_password ? 'checked' : '' %>> Wajib ganti password saat login</label>
+            </div>
+            <div class="button-row">
+                <button type="submit" class="btn-primary">Simpan</button>
+                <a href="/users" class="btn-secondary">Batal</a>
+            </div>
+        </form>
+
+        <% if (target.nim) { %>
+            <hr style="margin: 28px 0; border: none; border-top: 1px solid #e2e8f0;">
+            <h2>Reset Password</h2>
+            <form action="/users/<%= target.nim %>/reset-password" method="POST">
+                <div class="form-group">
+                    <label>Password Baru</label>
+                    <input type="text" name="new_password" class="form-control" minlength="6" required>
+                </div>
+                <button type="submit" class="btn-small-danger">Reset Password</button>
+            </form>
+        <% } %>
+    </section>
+</main>
+</body>
+</html>

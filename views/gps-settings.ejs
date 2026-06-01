@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lokasi Kelas | Al-Muraqabah</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<%- include('partials/navbar') %>
+
+<main class="main-content">
+    <section class="content-card form-card">
+        <span class="value-badge">GPS Radius 75 Meter</span>
+        <h2>📍 Set Lokasi Kelas</h2>
+        <p>Simpan titik kelas dari lokasi perangkat saat Anda berada di ruangan. Titik ini dipakai untuk semua mata kuliah.</p>
+
+        <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+        <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
+
+        <div class="islamic-message-box">
+            <h3>Iman ke Aksi</h3>
+            <p>Validasi lokasi membantu menjaga kehadiran yang jujur tanpa mengurangi nilai amanah pribadi.</p>
+        </div>
+
+        <form action="/gps-settings" method="POST">
+            <div class="form-group">
+                <label>Nama Lokasi</label>
+                <input type="text" id="className" name="class_name" class="form-control" value="<%= setting.class_name || 'Ruang Kelas Informatika A 2024' %>">
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Latitude</label>
+                    <input type="text" id="latitude" name="latitude" class="form-control" value="<%= setting.latitude || '' %>" required>
+                </div>
+                <div class="form-group">
+                    <label>Longitude</label>
+                    <input type="text" id="longitude" name="longitude" class="form-control" value="<%= setting.longitude || '' %>" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Radius</label>
+                <input type="text" class="form-control disabled-input" value="75 meter" disabled>
+            </div>
+
+            <div class="button-row">
+                <button type="button" class="btn-secondary" onclick="useCurrentLocation()">Ambil Lokasi Saya</button>
+                <button type="submit" class="btn-primary">Simpan Lokasi</button>
+            </div>
+            <p id="gpsInfo" class="info"></p>
+        </form>
+    </section>
+</main>
+
+<script>
+function useCurrentLocation() {
+    const info = document.getElementById('gpsInfo');
+    if (!navigator.geolocation) {
+        info.innerText = 'Browser tidak mendukung GPS.';
+        return;
+    }
+    info.innerText = 'Mengambil lokasi presisi tinggi...';
+    navigator.geolocation.getCurrentPosition((position) => {
+        document.getElementById('latitude').value = position.coords.latitude;
+        document.getElementById('longitude').value = position.coords.longitude;
+        info.innerText = `Lokasi berhasil diambil. Akurasi sekitar ${Math.round(position.coords.accuracy)} meter.`;
+    }, () => {
+        info.innerText = 'Gagal mengambil lokasi. Pastikan izin lokasi aktif.';
+    }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+}
+</script>
+</body>
+</html>

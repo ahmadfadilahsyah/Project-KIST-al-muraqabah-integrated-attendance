@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validasi GPS | Al-Muraqabah</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<%- include('partials/navbar') %>
+
+<main class="main-content">
+    <section class="content-card form-card text-center">
+        <span class="value-badge">Validasi Amanah</span>
+        <h2>📍 Validasi Lokasi</h2>
+        <p>Pastikan Anda berada di area kelas. Sistem memakai radius tetap 75 meter.</p>
+
+        <div class="islamic-message-box">
+            <h3><%= subjectName || 'Mata Kuliah' %></h3>
+            <p><%= sessionTitle || 'Sesi Absensi' %></p>
+        </div>
+
+        <button type="button" class="btn-primary" onclick="submitGpsAttendance()">Validasi GPS & Simpan Kehadiran</button>
+        <p id="gpsStatus" class="info">Menunggu validasi lokasi...</p>
+        <a href="/scan" class="btn-secondary">Scan Ulang</a>
+    </section>
+</main>
+
+<script>
+const token = '<%= token %>';
+const gpsStatus = document.getElementById('gpsStatus');
+
+function submitGpsAttendance() {
+    if (!navigator.geolocation) {
+        gpsStatus.innerText = 'Browser tidak mendukung GPS.';
+        return;
+    }
+
+    gpsStatus.innerText = 'Mengambil lokasi presisi tinggi...';
+    navigator.geolocation.getCurrentPosition(async (position) => {
+        try {
+            gpsStatus.innerText = 'Mengirim data kehadiran...';
+            const response = await fetch('/api/absen-gps', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    token,
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude,
+                    gps_accuracy: position.coords.accuracy
+                })
+            });
+            const data = await response.json();
+            gpsStatus.innerText = data.message || 'Selesai.';
+            if (data.success) {
+                setTimeout(() => {
+                    window.location.href = `/scan-success?success=true&message=${encodeURIComponent(data.message)}`;
+                }, 1000);
+            }
+        } catch (error) {
+            gpsStatus.innerText = 'Gagal menyimpan absensi.';
+        }
+    }, () => {
+        gpsStatus.innerText = 'Gagal mengambil GPS. Aktifkan izin lokasi dan mode lokasi presisi tinggi.';
+    }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+}
+
+window.addEventListener('load', submitGpsAttendance);
+</script>
+</body>
+</html>

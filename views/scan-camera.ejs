@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan QR | Al-Muraqabah</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body>
+<%- include('partials/navbar') %>
+
+<main class="main-content">
+    <section class="content-card form-card text-center scan-card">
+        <span class="value-badge">Shidiq dalam Kehadiran</span>
+        <h2>📷 Scan QR Absensi</h2>
+
+        <div class="islamic-message-box">
+            <h3>Dari Iman ke Aksi</h3>
+            <p>Scan dilakukan oleh diri sendiri sebagai bentuk amanah. Teknologi memvalidasi lokasi, keimanan menjaga niat.</p>
+        </div>
+
+        <div class="info-box">Kamera belakang akan diprioritaskan otomatis di perangkat mobile. Arahkan kamera ke QR Code yang ditampilkan dosen/PJ.</div>
+
+        <div class="button-row center">
+            <button type="button" class="btn-primary" onclick="startPreferredCamera()">Mulai Scan</button>
+            <button type="button" class="btn-secondary" onclick="switchCamera()">Ganti Kamera</button>
+        </div>
+
+        <div id="qr-reader" class="qr-reader-box"></div>
+        <p id="scan-status" class="info">Tekan Mulai Scan untuk mengaktifkan kamera.</p>
+        <a href="/dashboard" class="btn-secondary">Kembali ke Dashboard</a>
+    </section>
+</main>
+
+<script>
+    const scanStatus = document.getElementById('scan-status');
+    const html5QrCode = new Html5Qrcode('qr-reader');
+    let cameras = [];
+    let activeCameraIndex = 0;
+    let isRunning = false;
+
+    function onScanSuccess(decodedText) {
+        scanStatus.innerText = 'QR berhasil dipindai. Mengalihkan ke validasi GPS...';
+        const go = () => window.location.href = decodedText;
+        if (isRunning) html5QrCode.stop().then(go).catch(go);
+        else go();
+    }
+
+    function findBackCameraIndex(list) {
+        const index = list.findIndex(camera => {
+            const label = (camera.label || '').toLowerCase();
+            return label.includes('back') || label.includes('rear') || label.includes('environment') || label.includes('belakang');
+        });
+        return index >= 0 ? index : 0;
+    }
+
+    async function startWithConstraints() {
+        try {
+            await html5QrCode.start(
+                { facingMode: { exact: 'environment' } },
+                { fps: 10, qrbox: { width: 260, height: 260 }, aspectRatio: 1.0 },
+                onScanSuccess,
+                () => {}
+            );
+            isRunning = true;
+            scanStatus.innerText = 'Kamera belakang aktif. Arahkan ke QR Code.';
+            return true;
+        } catch (error) {
+            return false;
+        }
+    }
+
+    async function startCameraByIndex(index) {
+        if (!cameras.length) return;
+        if (isRunning) {
+            await html5QrCode.stop();
+            isRunning = false;
+        }
+        activeCameraIndex = index;
+        await html5QrCode.start(
+            cameras[activeCameraIndex].id,
+            { fps: 10, qrbox: { width: 260, height: 260 }, aspectRatio: 1.0 },
+            onScanSuccess,
+            () => {}
+        );
+        isRunning = true;
+        scanStatus.innerText = `Kamera aktif: ${cameras[activeCameraIndex].label || 'kamera perangkat'}`;
+    }
+
+    async function startPreferredCamera() {
+        scanStatus.innerText = 'Meminta izin kamera...';
+        const constraintStarted = await startWithConstraints();
+        if (constraintStarted) return;
+
+        try {
+            cameras = await Html5Qrcode.getCameras();
+            if (!cameras || cameras.length === 0) {
+                scanStatus.innerText = 'Tidak ada kamera yang terdeteksi.';
+                return;
+            }
+            activeCameraIndex = findBackCameraIndex(cameras);
+            await startCameraByIndex(activeCameraIndex);
+        } catch (error) {
+            scanStatus.innerText = 'Gagal membuka kamera. Pastikan izin kamera aktif dan gunakan HTTPS saat deploy.';
+        }
+    }
+
+    async function switchCamera() {
+        if (!cameras.length) {
+            cameras = await Html5Qrcode.getCameras();
+        }
+        if (!cameras.length) return;
+        const nextIndex = (activeCameraIndex + 1) % cameras.length;
+        try {
+            await startCameraByIndex(nextIndex);
+        } catch (error) {
+            scanStatus.innerText = 'Gagal mengganti kamera.';
+        }
+    }
+
+    window.addEventListener('load', () => {
+        if (window.innerWidth <= 900) startPreferredCamera();
+    });
+</script>
+</body>
+</html>

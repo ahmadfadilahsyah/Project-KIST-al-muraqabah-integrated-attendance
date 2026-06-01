@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil Kelas | Al-Muraqabah</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <%- include('partials/navbar') %>
+
+    <main class="main-content">
+        <section class="content-card form-card">
+            <h2>Profil Kelas Publik</h2>
+            <p class="info">Data ini akan tampil di dashboard publik sebelum login.</p>
+
+            <% if (error) { %>
+                <div class="alert alert-error"><%= error %></div>
+            <% } %>
+            <% if (success) { %>
+                <div class="alert alert-success"><%= success %></div>
+            <% } %>
+
+            <form action="/class-profile" method="POST">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="class_name">Nama Kelas</label>
+                        <input type="text" id="class_name" name="class_name" value="<%= profile.class_name || 'Informatika A 2024' %>" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="generation">Angkatan</label>
+                        <input type="text" id="generation" name="generation" value="<%= profile.generation || 'Angkatan 2024' %>" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Deskripsi Kelas</label>
+                    <textarea id="description" name="description" rows="5"><%= profile.description || '' %></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="instagram_url">Link Instagram</label>
+                        <input type="url" id="instagram_url" name="instagram_url" value="<%= profile.instagram_url || '' %>" placeholder="https://www.instagram.com/abstractbanget">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email Kelas</label>
+                        <input type="email" id="email" name="email" value="<%= profile.email || '' %>" placeholder="email@contoh.com">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="logo_url">URL Logo Kelas</label>
+                        <input type="url" id="logo_url" name="logo_url" value="<%= profile.logo_url || '' %>" placeholder="https://...">
+                    </div>
+                    <div class="form-group">
+                        <label for="hero_image_url">URL Foto Hero</label>
+                        <input type="url" id="hero_image_url" name="hero_image_url" value="<%= profile.hero_image_url || '' %>" placeholder="https://...">
+                    </div>
+                </div>
+
+                <div class="button-row">
+                    <button type="submit">Simpan Profil</button>
+                    <a href="/" target="_blank" class="btn-secondary">Lihat Dashboard Publik</a>
+                </div>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

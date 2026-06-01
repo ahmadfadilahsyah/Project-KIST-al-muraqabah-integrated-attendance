@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | Al-Muraqabah</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<%- include('partials/navbar') %>
+
+<main class="main-content">
+    <section class="content-card islamic-hero">
+        <span class="value-badge">Portal Digital Kelas</span>
+        <h2>Informatika A 2024</h2>
+        <p>Dashboard ini mengelola informasi kelas, mata kuliah, PJ, QR attendance, validasi GPS, dan rekap kehadiran.</p>
+    </section>
+
+    <section class="stats-grid">
+        <div class="stat-card"><p>Mahasiswa Aktif</p><h2><%= stats.totalMahasiswa || 0 %></h2></div>
+        <div class="stat-card"><p>Mata Kuliah</p><h2><%= stats.totalSubjects || 0 %></h2></div>
+        <div class="stat-card"><p>Sesi Aktif</p><h2><%= stats.activeSessions || 0 %></h2></div>
+    </section>
+
+    <% if (user.role === 'admin' || user.role === 'lecturer' || Number(user.is_kosma || 0) === 1) { %>
+        <section class="content-card">
+            <div class="dashboard-section-header">
+                <div>
+                    <h2>📚 Daftar Sesi Terbaru</h2>
+                    <p>Admin, Kosma, dan Dosen dapat melihat sesi sesuai aksesnya.</p>
+                </div>
+                <a href="/create-session" class="btn-primary">Buat Sesi</a>
+            </div>
+
+            <% if (!sessions || sessions.length === 0) { %>
+                <div class="empty-state">Belum ada sesi.</div>
+            <% } else { %>
+                <div class="table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Mata Kuliah</th>
+                                <th>Judul</th>
+                                <th>Dibuat</th>
+                                <th>Berakhir</th>
+                                <th>Hadir</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% sessions.forEach(session => { %>
+                                <tr>
+                                    <td><%= session.subject_name || '-' %></td>
+                                    <td><strong><%= session.judul || 'Tanpa Judul' %></strong></td>
+                                    <td><%= session.created_at || '-' %></td>
+                                    <td><%= session.expires_at || '-' %></td>
+                                    <td><span class="badge hadir"><%= session.hadir || 0 %> Hadir</span></td>
+                                    <td>
+                                        <div class="table-actions">
+                                            <a href="/show-qr/<%= session.id %>" class="btn-small">Lihat QR</a>
+                                            <form action="/delete-session/<%= session.id %>" method="POST" onsubmit="return confirm('Nonaktifkan sesi ini?')">
+                                                <button type="submit" class="btn-small-danger">Nonaktifkan</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            <% } %>
+        </section>
+    <% } else { %>
+        <% if (pjSubjects && pjSubjects.length > 0) { %>
+            <section class="content-card">
+                <div class="dashboard-section-header">
+                    <div>
+                        <h2>🧩 Akses PJ Saya</h2>
+                        <p>Kamu dapat membuat sesi untuk mata kuliah berikut.</p>
+                    </div>
+                    <a href="/create-session" class="btn-primary">Buat Sesi PJ</a>
+                </div>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Kode</th><th>Mata Kuliah</th><th>Semester</th></tr></thead>
+                        <tbody>
+                            <% pjSubjects.forEach(subject => { %>
+                                <tr><td><%= subject.code || '-' %></td><td><%= subject.name %></td><td><%= subject.semester || '-' %></td></tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        <% } %>
+
+        <section class="content-card">
+            <div class="dashboard-section-header">
+                <div>
+                    <h2>📋 Riwayat Absensi Saya</h2>
+                    <p>Scan QR saat sesi aktif dan pastikan GPS aktif.</p>
+                </div>
+                <a href="/scan" class="btn-primary">📷 Scan QR</a>
+            </div>
+
+            <% if (!attendanceHistory || attendanceHistory.length === 0) { %>
+                <div class="empty-state">Belum ada riwayat absensi.</div>
+            <% } else { %>
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Mata Kuliah</th><th>Pertemuan</th><th>Waktu</th><th>Status</th><th>Metode</th></tr></thead>
+                        <tbody>
+                            <% attendanceHistory.forEach(item => { %>
+                                <tr>
+                                    <td><%= item.subject_name || '-' %></td>
+                                    <td><%= item.judul %></td>
+                                    <td><%= item.created_at || '-' %></td>
+                                    <td><span class="badge <%= item.status === 'hadir' ? 'hadir' : 'alpha' %>"><%= item.status %></span></td>
+                                    <td><%= item.method || '-' %></td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            <% } %>
+        </section>
+    <% } %>
+</main>
+</body>
+</html>
