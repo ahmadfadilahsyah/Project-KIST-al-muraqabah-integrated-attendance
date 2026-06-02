@@ -12,7 +12,7 @@ function requireGpsManager(req, res, next) {
 }
 
 function saveClassLocation({ class_name, latitude, longitude, created_by }, callback) {
-    const radius = 75;
+    const radius = 500;
     const lat = parseFloat(latitude);
     const lng = parseFloat(longitude);
 
