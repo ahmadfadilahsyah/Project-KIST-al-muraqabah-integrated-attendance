@@ -59,6 +59,7 @@
                                         <div class="table-actions">
                                             <a href="/show-qr/<%= session.id %>" class="btn-small">Lihat QR</a>
                                             <form action="/delete-session/<%= session.id %>" method="POST" onsubmit="return confirm('Nonaktifkan sesi ini?')">
+                                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                                 <button type="submit" class="btn-small-danger">Nonaktifkan</button>
                                             </form>
                                         </div>

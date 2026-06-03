@@ -6,44 +6,44 @@ const PASSWORD = 'dosen123';
 const NAMA = 'Dosen Al Muraqabah';
 const EMAIL = 'dosen@example.com';
 
-const hashedPassword = bcrypt.hashSync(PASSWORD, 10);
+async function main() {
+    await db.ready;
 
-db.get(`SELECT * FROM users WHERE nim = ?`, [NIM], (err, user) => {
-  if (err) {
-    console.error('Error query:', err.message);
-    db.close();
-    return;
-  }
-  
-  if (user) {
-    console.log('Akun dosen ditemukan:');
-    console.log(`NIM: ${user.nim}`);
-    console.log(`Nama: ${user.nama}`);
-    console.log(`Email: ${user.email || '-'}`);
-    console.log(`Role: ${user.role}`);
-    
-    // Update password dan email jika diperlukan
-    db.run(`UPDATE users SET password = ?, email = ? WHERE nim = ?`, [hashedPassword, EMAIL, NIM], (err) => {
-      if (err) {
-        console.error('Gagal update:', err.message);
-      } else {
-        console.log('✅ Password dan email telah direset.');
+    const hashedPassword = await bcrypt.hash(PASSWORD, 10);
+    const user = await db.getAsync('SELECT nim, nama, email, role FROM users WHERE nim = ?', [NIM]);
+
+    if (user) {
+        console.log('Akun dosen ditemukan:');
+        console.log(`NIM: ${user.nim}`);
+        console.log(`Nama: ${user.nama}`);
+        console.log(`Email: ${user.email || '-'}`);
+        console.log(`Role: ${user.role}`);
+
+        await db.runAsync(
+            `UPDATE users
+             SET password = ?, nama = ?, email = ?, role = 'lecturer', status = 'active',
+                 must_change_password = 1, updated_at = CURRENT_TIMESTAMP
+             WHERE nim = ?`,
+            [hashedPassword, NAMA, EMAIL, NIM]
+        );
+        console.log('Password dan email dosen telah direset.');
+        return;
+    }
+
+    await db.runAsync(
+        `INSERT INTO users (nim, nama, email, password, role, status, must_change_password, created_at)
+         VALUES (?, ?, ?, ?, 'lecturer', 'active', 1, CURRENT_TIMESTAMP)`,
+        [NIM, NAMA, EMAIL, hashedPassword]
+    );
+    console.log('Akun dosen berhasil dibuat.');
+}
+
+main()
+    .then(() => {
         console.log(`Silakan login dengan NIM: ${NIM}, Password: ${PASSWORD}`);
-      }
-      db.close();
-    });
-  } else {
-    console.log('Akun dosen tidak ditemukan. Membuat baru...');
-    db.run(`INSERT INTO users (nim, nama, email, password, role) VALUES (?, ?, ?, ?, ?)`,
-      [NIM, NAMA, EMAIL, hashedPassword, 'lecturer'],
-      (err) => {
-        if (err) {
-          console.error('Gagal membuat akun:', err.message);
-        } else {
-          console.log('✅ Akun dosen berhasil dibuat.');
-          console.log(`NIM: ${NIM}, Password: ${PASSWORD}`);
-        }
-        db.close();
-      });
-  }
-});
+    })
+    .catch((err) => {
+        console.error('Reset akun dosen gagal:', err.message);
+        process.exitCode = 1;
+    })
+    .finally(() => db.close());

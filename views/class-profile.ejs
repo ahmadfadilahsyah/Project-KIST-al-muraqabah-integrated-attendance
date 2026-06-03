@@ -22,6 +22,7 @@
             <% } %>
 
             <form action="/class-profile" method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <div class="form-row">
                     <div class="form-group">
                         <label for="class_name">Nama Kelas</label>

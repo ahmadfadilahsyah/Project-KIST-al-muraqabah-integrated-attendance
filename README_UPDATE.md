@@ -4,7 +4,7 @@ Paket ini memperbaiki:
 
 - Logout desktop dan mobile.
 - Buat sesi untuk Admin, Kosma, Dosen, dan PJ.
-- Set lokasi GPS kelas dari halaman Buat Sesi dan halaman Lokasi Kelas.
+- Set lokasi GPS kelas dari halaman Buat Sesi dan halaman Lokasi Kelas dengan radius 500 meter.
 - QR dinamis PostgreSQL-ready.
 - Scan QR mobile otomatis mengutamakan kamera belakang.
 - Validasi GPS untuk mahasiswa dan tombol Saya Hadir PJ.

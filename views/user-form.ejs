@@ -15,6 +15,7 @@
         <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
 
         <form action="<%= action %>" method="POST">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <div class="form-group">
                 <label>Username / NIM</label>
                 <input type="text" name="nim" class="form-control" value="<%= target.nim || '' %>" <%= target.nim ? 'readonly' : '' %> required>
@@ -63,6 +64,7 @@
             <hr style="margin: 28px 0; border: none; border-top: 1px solid #e2e8f0;">
             <h2>Reset Password</h2>
             <form action="/users/<%= target.nim %>/reset-password" method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <div class="form-group">
                     <label>Password Baru</label>
                     <input type="text" name="new_password" class="form-control" minlength="6" required>

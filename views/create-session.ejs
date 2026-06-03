@@ -25,6 +25,7 @@
             <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
 
             <form action="/create-session" method="POST">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <div class="form-group">
                     <label>Mata Kuliah</label>
                     <select name="subject_id" class="form-control" required>
@@ -67,7 +68,7 @@
                 <div class="status-panel success-panel">
                     <strong>Lokasi kelas sudah aktif</strong>
                     <p><%= classSetting.class_name || 'Lokasi Kelas Informatika A 2024' %></p>
-                    <small>Lat: <%= Number(classSetting.latitude).toFixed(6) %>, Lng: <%= Number(classSetting.longitude).toFixed(6) %> · Radius 75m</small>
+                    <small>Lat: <%= Number(classSetting.latitude).toFixed(6) %>, Lng: <%= Number(classSetting.longitude).toFixed(6) %> · Radius 500m</small>
                 </div>
             <% } else { %>
                 <div class="status-panel warning-panel">
@@ -108,7 +109,7 @@ async function setCurrentClassLocation() {
         try {
             const response = await fetch('/api/class-location', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'CSRF-Token': '<%= csrfToken %>' },
                 body: JSON.stringify({
                     class_name: className,
                     latitude: position.coords.latitude,

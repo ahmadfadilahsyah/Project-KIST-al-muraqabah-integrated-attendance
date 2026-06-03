@@ -98,7 +98,7 @@ router.get('/create-session', requireSessionCreator, (req, res) => {
                 success: req.query.success || null,
                 subjects: req.allowedSubjects,
                 setting: setting || { default_session_minute: 60, min_session_minute: 15, max_session_minute: 120 },
-                classSetting: classSetting || { radius_meters: 75 }
+                classSetting: classSetting || { radius_meters: 500 }
             });
         });
     });
@@ -120,7 +120,7 @@ router.post('/create-session', requireSessionCreator, (req, res) => {
                     success: null,
                     subjects: req.allowedSubjects,
                     setting: sys,
-                    classSetting: classSetting || { radius_meters: 75 }
+                    classSetting: classSetting || { radius_meters: 500 }
                 });
             });
         };

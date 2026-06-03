@@ -54,8 +54,10 @@
         <label>Nama Kelas</label>
         <input type="text" name="class_name" required>
 
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
         <label>Radius Absensi (meter)</label>
-        <input type="number" name="radius_meters" value="50">
+        <input type="number" name="radius_meters" value="500">
 
         <div class="coords">
             <strong>Latitude:</strong>

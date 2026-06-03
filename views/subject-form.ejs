@@ -18,6 +18,7 @@
         <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
 
         <form action="<%= action %>" method="POST">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <div class="form-section-title">Informasi Mata Kuliah</div>
             <div class="form-row">
                 <div class="form-group">

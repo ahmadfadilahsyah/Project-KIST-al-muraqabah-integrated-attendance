@@ -46,7 +46,7 @@ function saveAttendanceWithGps(req, res, sessionId, method) {
 
             const classLat = parseFloat(setting.latitude);
             const classLng = parseFloat(setting.longitude);
-            const radius = parseInt(setting.radius_meters, 10) || 75;
+            const radius = parseInt(setting.radius_meters, 10) || 500;
             const distance = getDistance(studentLat, studentLng, classLat, classLng);
 
             if (distance > radius) {

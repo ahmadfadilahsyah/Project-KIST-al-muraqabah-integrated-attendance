@@ -21,6 +21,7 @@
         <% } %>
 
         <form action="/login" method="POST">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <div class="form-group">
                 <label>NIM / ID</label>
                 <input type="text" name="nim" class="form-control" placeholder="Contoh: D001 atau M001" required autofocus>

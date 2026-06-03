@@ -11,7 +11,7 @@
 
 <main class="main-content">
     <section class="content-card form-card">
-        <span class="value-badge">GPS Radius 75 Meter</span>
+        <span class="value-badge">GPS Radius 500 Meter</span>
         <h2>📍 Set Lokasi Kelas</h2>
         <p>Simpan titik kelas dari lokasi perangkat saat Anda berada di ruangan. Titik ini dipakai untuk semua mata kuliah.</p>
 
@@ -24,6 +24,7 @@
         </div>
 
         <form action="/gps-settings" method="POST">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
             <div class="form-group">
                 <label>Nama Lokasi</label>
                 <input type="text" id="className" name="class_name" class="form-control" value="<%= setting.class_name || 'Ruang Kelas Informatika A 2024' %>">
@@ -42,7 +43,7 @@
 
             <div class="form-group">
                 <label>Radius</label>
-                <input type="text" class="form-control disabled-input" value="75 meter" disabled>
+                <input type="text" class="form-control disabled-input" value="500 meter" disabled>
             </div>
 
             <div class="button-row">

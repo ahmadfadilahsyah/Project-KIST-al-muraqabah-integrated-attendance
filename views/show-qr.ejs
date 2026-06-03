@@ -29,7 +29,7 @@
         <% if (!classSetting || !classSetting.latitude || !classSetting.longitude) { %>
             <div class="alert alert-error">Lokasi kelas belum diatur. Absensi GPS akan gagal sampai admin/kosma/dosen menyimpan titik kelas.</div>
         <% } else { %>
-            <div class="alert alert-success">Lokasi kelas aktif: <%= classSetting.class_name || 'Lokasi Kelas' %> · Radius 75 meter.</div>
+            <div class="alert alert-success">Lokasi kelas aktif: <%= classSetting.class_name || 'Lokasi Kelas' %> · Radius 500 meter.</div>
         <% } %>
 
         <% if (canUseCreatorButton) { %>
@@ -59,6 +59,7 @@
 
 <script>
     const sessionId = '<%= session.id %>';
+    const csrfToken = '<%= csrfToken %>';
     const qrImage = document.getElementById('qr-image');
     const qrLoading = document.getElementById('qr-loading');
     const qrStatus = document.getElementById('qr-status');
@@ -105,7 +106,7 @@
             try {
                 const response = await fetch(`/api/creator-present/${sessionId}`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json', 'CSRF-Token': csrfToken },
                     body: JSON.stringify({
                         latitude: position.coords.latitude,
                         longitude: position.coords.longitude,

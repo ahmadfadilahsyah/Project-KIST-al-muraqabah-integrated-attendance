@@ -21,8 +21,8 @@ function normalizeSql(sql) {
     normalized = normalized.replace(/status\s*=\s*"inactive"/gi, "status = 'inactive'");
     normalized = normalized.replace(/status\s*=\s*"active"/gi, "status = 'active'");
 
-    // Tambahkan ON CONFLICT DO NOTHING untuk query lama INSERT OR IGNORE yang sudah dinormalisasi.
-    // Hanya jika query belum punya ON CONFLICT dan query asalnya mengandung INSERT OR IGNORE.
+    // Tambahkan ON CONFLICT DO NOTHING untuk query SQLite lama yang sudah dinormalisasi.
+    // Hanya jika query belum punya ON CONFLICT dan query asalnya memakai sintaks ignore SQLite.
     if (/INSERT\s+OR\s+IGNORE\s+INTO/i.test(sql) && !/ON\s+CONFLICT/i.test(normalized)) {
         normalized = normalized.replace(/;\s*$/, '');
         normalized += ' ON CONFLICT DO NOTHING';
@@ -147,7 +147,7 @@ function serialize(callback) {
 }
 
 function close(callback) {
-    pool.end()
+    return pool.end()
         .then(() => callback && callback(null))
         .catch(err => callback && callback(err));
 }
@@ -295,7 +295,7 @@ async function initDatabase() {
                 class_name TEXT,
                 latitude DOUBLE PRECISION,
                 longitude DOUBLE PRECISION,
-                radius_meters INTEGER DEFAULT 75,
+                radius_meters INTEGER DEFAULT 500,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
@@ -304,7 +304,7 @@ async function initDatabase() {
         await queryAsync(`
             CREATE TABLE IF NOT EXISTS system_settings (
                 id INTEGER PRIMARY KEY,
-                gps_radius_meter INTEGER NOT NULL DEFAULT 75,
+                gps_radius_meter INTEGER NOT NULL DEFAULT 500,
                 qr_refresh_second INTEGER NOT NULL DEFAULT 30,
                 default_session_minute INTEGER NOT NULL DEFAULT 60,
                 min_session_minute INTEGER NOT NULL DEFAULT 15,
@@ -397,10 +397,14 @@ async function initDatabase() {
         await queryAsync(`ALTER TABLE galleries ADD COLUMN IF NOT EXISTS visibility VARCHAR(30) NOT NULL DEFAULT 'public'`);
         await queryAsync(`ALTER TABLE class_profile ADD COLUMN IF NOT EXISTS updated_by VARCHAR(50)`);
 
-        await seedUserIfNotExists('A001', 'Admin Kelas', 'admin123', 'admin', 'admin@example.com');
-        await seedUserIfNotExists('D001', 'Dosen Demo', 'dosen123', 'lecturer', 'dosen@example.com', 1);
-        await seedUserIfNotExists('M001', 'Mahasiswa Demo', 'mahasiswa123', 'student', 'mahasiswa@example.com');
-        await seedUserIfNotExists('M002', 'Kosma Demo', 'kosma123', 'student', 'kosma@example.com');
+        const shouldSeedDemoUsers = process.env.NODE_ENV !== 'production' || process.env.SEED_DEMO_USERS === 'true';
+
+        if (shouldSeedDemoUsers) {
+            await seedUserIfNotExists('A001', 'Admin Kelas', 'admin123', 'admin', 'admin@example.com');
+            await seedUserIfNotExists('D001', 'Dosen Demo', 'dosen123', 'lecturer', 'dosen@example.com', 1);
+            await seedUserIfNotExists('M001', 'Mahasiswa Demo', 'mahasiswa123', 'student', 'mahasiswa@example.com');
+            await seedUserIfNotExists('M002', 'Kosma Demo', 'kosma123', 'student', 'kosma@example.com');
+        }
 
         await queryAsync(`
             INSERT INTO class_officers (user_nim, position, period, status, created_by)
@@ -433,10 +437,11 @@ async function initDatabase() {
         console.log('Database PostgreSQL siap digunakan.');
     } catch (err) {
         console.error('Gagal inisialisasi PostgreSQL:', err.message);
+        throw err;
     }
 }
 
-initDatabase();
+const ready = initDatabase();
 
 module.exports = {
     run,
@@ -448,5 +453,6 @@ module.exports = {
     allAsync,
     getAsync,
     query: queryAsync,
-    pool
+    pool,
+    ready
 };

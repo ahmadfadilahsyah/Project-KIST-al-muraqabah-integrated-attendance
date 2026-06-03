@@ -143,8 +143,9 @@ router.post('/users/:nim/reset-password', requireAdminOrKosma, async (req, res) 
 
 router.post('/users/:nim/kosma', requireAdmin, (req, res) => {
     db.run(
-        `INSERT OR IGNORE INTO class_officers (user_nim, position, period, status, created_by, created_at)
-         VALUES (?, 'kosma', ?, 'active', ?, CURRENT_TIMESTAMP)`,
+        `INSERT INTO class_officers (user_nim, position, period, status, created_by, created_at)
+         VALUES (?, 'kosma', ?, 'active', ?, CURRENT_TIMESTAMP)
+         ON CONFLICT (user_nim, position, status) DO NOTHING`,
         [req.params.nim, req.body.period || '2024/2025', req.session.user.nim],
         (err) => {
             if (err) return res.status(500).send('Gagal menetapkan kosma.');

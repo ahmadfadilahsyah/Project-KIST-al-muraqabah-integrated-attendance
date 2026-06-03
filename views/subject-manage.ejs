@@ -23,6 +23,7 @@
             <span class="value-badge">Dosen</span>
             <h2>Dosen Pengampu</h2>
             <form action="/subjects/<%= subject.id %>/lecturer/add" method="POST" class="mini-form">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <div class="form-group">
                     <label>Pilih Dosen</label>
                     <select name="lecturer_nim" class="form-control" required>
@@ -56,6 +57,7 @@
                             <span><%= item.lecturer_nim %> · <%= item.academic_year || '-' %></span>
                         </div>
                         <form action="/subjects/<%= subject.id %>/lecturer/<%= item.id %>/delete" method="POST">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                             <button class="btn-small-danger" type="submit">Cabut</button>
                         </form>
                     </div>
@@ -67,6 +69,7 @@
             <span class="value-badge">PJ</span>
             <h2>PJ Mata Kuliah</h2>
             <form action="/subjects/<%= subject.id %>/pj/add" method="POST" class="mini-form">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                 <div class="form-group">
                     <label>Pilih Mahasiswa</label>
                     <select name="student_nim" class="form-control" required>
@@ -90,6 +93,7 @@
                             <span><%= item.student_nim %></span>
                         </div>
                         <form action="/subjects/<%= subject.id %>/pj/<%= item.id %>/delete" method="POST">
+                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                             <button class="btn-small-danger" type="submit">Cabut</button>
                         </form>
                     </div>

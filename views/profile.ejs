@@ -32,6 +32,7 @@
                 <h2>👤 Update Email</h2>
                 <p class="info">Email digunakan sebagai identitas komunikasi akademik.</p>
                 <form action="/profile/update-email" method="POST">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                     <div class="form-group">
                         <label>Email</label>
                         <input type="email" name="email" class="form-control" value="<%= userData.email || '' %>" placeholder="Masukkan email aktif" required>
@@ -44,6 +45,7 @@
                 <h2>🔐 Ganti Password</h2>
                 <p class="info">Menjaga akun adalah bagian dari amanah digital.</p>
                 <form action="/profile/change-password" method="POST">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                     <div class="form-group">
                         <label>Password Lama</label>
                         <input type="password" name="old_password" class="form-control" placeholder="Masukkan password lama" required>
