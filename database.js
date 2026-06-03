@@ -1,6 +1,6 @@
 const { Pool } = require('pg');
-const bcrypt = require('bcrypt');
-require('dotenv').config();
+require('./utils/secrets').loadSecrets();
+const { hashPassword } = require('./utils/password');
 
 if (!process.env.DATABASE_URL) {
     console.error('DATABASE_URL belum diatur. Isi di file .env untuk lokal atau Railway Variables untuk deploy.');
@@ -156,7 +156,7 @@ async function seedUserIfNotExists(nim, nama, password, role, email = null, must
     const existing = await getAsync('SELECT nim FROM users WHERE nim = ?', [nim]);
     if (existing) return;
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await hashPassword(password);
     await runAsync(
         `INSERT INTO users (nim, nama, email, password, role, status, must_change_password, created_at)
          VALUES (?, ?, ?, ?, ?, 'active', ?, CURRENT_TIMESTAMP)`,
@@ -331,6 +331,8 @@ async function initDatabase() {
                 id SERIAL PRIMARY KEY,
                 title TEXT NOT NULL,
                 content TEXT NOT NULL,
+                image_url TEXT,
+                published_at TIMESTAMP,
                 visibility VARCHAR(30) NOT NULL DEFAULT 'public',
                 created_by VARCHAR(50),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -396,14 +398,16 @@ async function initDatabase() {
 
         await queryAsync(`ALTER TABLE galleries ADD COLUMN IF NOT EXISTS visibility VARCHAR(30) NOT NULL DEFAULT 'public'`);
         await queryAsync(`ALTER TABLE class_profile ADD COLUMN IF NOT EXISTS updated_by VARCHAR(50)`);
+        await queryAsync(`ALTER TABLE announcements ADD COLUMN IF NOT EXISTS image_url TEXT`);
+        await queryAsync(`ALTER TABLE announcements ADD COLUMN IF NOT EXISTS published_at TIMESTAMP`);
 
         const shouldSeedDemoUsers = process.env.NODE_ENV !== 'production' || process.env.SEED_DEMO_USERS === 'true';
 
         if (shouldSeedDemoUsers) {
-            await seedUserIfNotExists('A001', 'Admin Kelas', 'admin123', 'admin', 'admin@example.com');
-            await seedUserIfNotExists('D001', 'Dosen Demo', 'dosen123', 'lecturer', 'dosen@example.com', 1);
-            await seedUserIfNotExists('M001', 'Mahasiswa Demo', 'mahasiswa123', 'student', 'mahasiswa@example.com');
-            await seedUserIfNotExists('M002', 'Kosma Demo', 'kosma123', 'student', 'kosma@example.com');
+            await seedUserIfNotExists('A001', 'Admin Kelas', 'Admin123!', 'admin', 'admin@example.com');
+            await seedUserIfNotExists('D001', 'Dosen Demo', 'Dosen123!', 'lecturer', 'dosen@example.com', 1);
+            await seedUserIfNotExists('M001', 'Mahasiswa Demo', 'Mahasiswa123!', 'student', 'mahasiswa@example.com');
+            await seedUserIfNotExists('M002', 'Kosma Demo', 'Kosma123!', 'student', 'kosma@example.com');
         }
 
         await queryAsync(`

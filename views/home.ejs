@@ -12,11 +12,11 @@
             <% if (profile.logo_url) { %>
                 <img src="<%= profile.logo_url %>" alt="Logo kelas" class="public-logo-img">
             <% } else { %>
-                <div class="brand-logo">A</div>
+                <div class="brand-logo">AM</div>
             <% } %>
             <div>
                 <strong><%= profile.class_name || 'Informatika A 2024' %></strong>
-                <small><%= profile.generation || 'Angkatan 2024' %> · Portal Digital Kelas</small>
+                <small><%= profile.generation || 'Angkatan 2024' %> - Portal Digital Kelas</small>
             </div>
         </div>
         <div class="public-nav-actions">
@@ -28,13 +28,13 @@
     </header>
 
     <main class="public-main">
-        <section class="public-hero <%= profile.hero_image_url ? 'public-hero-with-image' : '' %>" <% if (profile.hero_image_url) { %>style="background-image: linear-gradient(135deg, rgba(15, 23, 42, .70), rgba(22, 101, 52, .70)), url('<%= profile.hero_image_url %>');"<% } %>>
-            <span class="value-badge">Al-Muraqabah Class Portal</span>
+        <section class="public-hero <%= profile.hero_image_url ? 'public-hero-with-image' : '' %>" <% if (profile.hero_image_url) { %>style="background-image: linear-gradient(135deg, rgba(15, 23, 42, .74), rgba(20, 83, 45, .76)), url('<%= profile.hero_image_url %>');"<% } %>>
+            <span class="value-badge">Dari Iman ke Taqwa</span>
             <h1><%= profile.class_name || 'Website Kelas Informatika A 2024' %></h1>
-            <p><%= profile.description || 'Pusat informasi kelas, jadwal, pengumuman, dokumentasi kegiatan, dan absensi digital berbasis QR Code serta GPS.' %></p>
+            <p><%= profile.description || 'Portal kelas yang merawat ilmu, adab, Shidiq, dan Amanah melalui informasi akademik, berita kegiatan, dokumentasi, serta absensi digital yang transparan.' %></p>
             <div class="button-row center">
                 <a href="/login" class="btn-primary">Masuk Dashboard</a>
-                <a href="#profil" class="btn-secondary">Lihat Profil Kelas</a>
+                <a href="#berita" class="btn-secondary">Lihat Berita</a>
             </div>
         </section>
 
@@ -44,44 +44,78 @@
             <div class="stat-card"><p>Mata Kuliah</p><h2><%= stats.totalMatkul || 0 %></h2></div>
         </section>
 
-        <section id="profil" class="content-card public-card">
+        <section class="public-values">
+            <article>
+                <span>01</span>
+                <h3>Iman</h3>
+                <p>Kesadaran bahwa belajar adalah ibadah dan setiap amanah akademik bernilai di sisi Allah.</p>
+            </article>
+            <article>
+                <span>02</span>
+                <h3>Shidiq</h3>
+                <p>Jujur dalam kehadiran, data, komunikasi kelas, dan proses menuntut ilmu.</p>
+            </article>
+            <article>
+                <span>03</span>
+                <h3>Amanah</h3>
+                <p>Bertanggung jawab atas waktu, tugas, peran PJ, dan kepercayaan yang diberikan.</p>
+            </article>
+        </section>
+
+        <section id="profil" class="content-card public-card public-profile-card">
+            <span class="value-badge">Al-Muraqabah</span>
             <h2>Tentang Kelas</h2>
             <p><%= profile.description || 'Informatika A 2024 adalah kelas yang berfokus pada kolaborasi, disiplin akademik, dan pengembangan kompetensi informatika. Portal ini menjadi ruang digital untuk mendukung kegiatan kelas secara transparan dan terstruktur.' %></p>
             <div class="public-contact-row">
                 <% if (profile.instagram_url) { %>
-                    <a href="<%= profile.instagram_url %>" target="_blank" rel="noopener" class="btn-secondary">📸 Instagram Kelas</a>
+                    <a href="<%= profile.instagram_url %>" target="_blank" rel="noopener" class="btn-secondary">Instagram Kelas</a>
                 <% } %>
                 <% if (profile.email) { %>
-                    <a href="mailto:<%= profile.email %>" class="btn-secondary">✉️ <%= profile.email %></a>
+                    <a href="mailto:<%= profile.email %>" class="btn-secondary"><%= profile.email %></a>
                 <% } %>
             </div>
         </section>
 
-        <section class="public-grid">
-            <div class="content-card inner-card">
-                <h2>📢 Pengumuman Terbaru</h2>
-                <% if (announcements && announcements.length) { %>
-                    <div class="public-list">
-                        <% announcements.forEach(item => { %>
-                            <article class="public-list-item">
-                                <strong><%= item.title %></strong>
-                                <p><%= item.content.length > 120 ? item.content.substring(0, 120) + '...' : item.content %></p>
-                            </article>
-                        <% }) %>
-                    </div>
-                <% } else { %>
-                    <p>Belum ada pengumuman publik.</p>
-                <% } %>
+        <section id="berita" class="public-news-section">
+            <div class="public-section-heading">
+                <span class="value-badge">Berita Kelas</span>
+                <h2>Kabar Ilmu, Adab, dan Amanah</h2>
+                <p>Rangkuman kegiatan kelas yang ditulis untuk menjaga budaya Shidiq dan Amanah.</p>
             </div>
 
+            <% if (announcements && announcements.length) { %>
+                <div class="public-news-grid">
+                    <% announcements.forEach((item, index) => { %>
+                        <article class="public-news-card <%= index === 0 ? 'featured-news-card' : '' %>">
+                            <div class="public-news-media <% if (!item.image_url) { %>public-news-media-empty<% } %>">
+                                <% if (item.image_url) { %>
+                                    <img src="<%= item.image_url %>" alt="<%= item.title %>">
+                                <% } else { %>
+                                    <span>Al-Muraqabah</span>
+                                <% } %>
+                            </div>
+                            <div class="public-news-content">
+                                <div class="news-meta"><%= item.published_at || item.created_at || '-' %> - <%= item.author_name || 'Admin Kelas' %></div>
+                                <h3><%= item.title %></h3>
+                                <p><%= item.content.length > 180 ? item.content.substring(0, 180) + '...' : item.content %></p>
+                            </div>
+                        </article>
+                    <% }) %>
+                </div>
+            <% } else { %>
+                <div class="empty-state">Belum ada berita publik.</div>
+            <% } %>
+        </section>
+
+        <section class="public-grid public-support-grid">
             <div class="content-card inner-card">
-                <h2>📅 Jadwal Kuliah</h2>
+                <h2>Jadwal Kuliah</h2>
                 <% if (schedules && schedules.length) { %>
                     <div class="public-list">
                         <% schedules.forEach(item => { %>
                             <article class="public-list-item">
-                                <strong><%= item.day %> · <%= item.start_time || '-' %> - <%= item.end_time || '-' %></strong>
-                                <p><%= item.subject_name || 'Mata kuliah' %><% if (item.room) { %> · <%= item.room %><% } %></p>
+                                <strong><%= item.day %> - <%= item.start_time || '-' %> sampai <%= item.end_time || '-' %></strong>
+                                <p><%= item.subject_name || 'Mata kuliah' %><% if (item.room) { %> - <%= item.room %><% } %></p>
                             </article>
                         <% }) %>
                     </div>
@@ -91,8 +125,8 @@
             </div>
 
             <div class="content-card inner-card">
-                <h2>✅ Absensi Digital</h2>
-                <p>Sistem absensi memakai QR dinamis dan validasi GPS radius 500 meter. PJ dapat memakai tombol <strong>Saya Hadir</strong> dengan validasi lokasi yang sama.</p>
+                <h2>Absensi Digital Amanah</h2>
+                <p>QR dinamis dan validasi GPS membantu kelas menjaga kejujuran. Data hadir bukan sekadar angka, tetapi latihan Shidiq dalam rutinitas akademik.</p>
             </div>
         </section>
 
@@ -124,7 +158,7 @@
 
     <footer class="public-footer">
         <strong><%= profile.class_name || 'Informatika A 2024' %></strong>
-        <span>Al-Muraqabah Class Portal</span>
+        <span>Dari Iman ke Taqwa - Shidiq dan Amanah</span>
         <% if (profile.instagram_url) { %>
             <a href="<%= profile.instagram_url %>" target="_blank" rel="noopener">@abstractbanget</a>
         <% } %>

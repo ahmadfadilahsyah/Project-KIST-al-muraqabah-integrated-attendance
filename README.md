@@ -172,10 +172,17 @@ Buat file `.env`
 ```env
 DATABASE_URL=postgresql://username:password@host:5432/database
 
-SESSION_SECRET=your-secret-key
+SESSION_SECRET=your-secret-key-minimal-32-karakter
 
 NODE_ENV=development
+BCRYPT_ROUNDS=12
+PASSWORD_MIN_LENGTH=10
+VAULT_FILE=secrets/vault.json
 ```
+
+Alternatif lokal: copy `secrets/vault.example.json` menjadi `secrets/vault.json`, lalu isi secret asli di sana. File `secrets/vault.json` sudah masuk `.gitignore`, jadi tidak ikut commit.
+
+Prioritas secret: environment variable dari server/deploy, lalu `.env`, lalu `secrets/vault.json` untuk nilai yang belum ada.
 
 ### 4. Jalankan Server
 
@@ -209,8 +216,10 @@ node app.js
 ### Environment Variables
 
 ```env
-SESSION_SECRET=your-secret-key
+SESSION_SECRET=your-secret-key-minimal-32-karakter
 NODE_ENV=production
+BCRYPT_ROUNDS=12
+PASSWORD_MIN_LENGTH=10
 ```
 
 ### Generate Domain
@@ -227,7 +236,10 @@ Settings
 
 Project ini mengimplementasikan:
 
-- Password Hashing menggunakan bcrypt
+- Password hashing menggunakan bcrypt dengan cost minimal 12 round
+- Rehash otomatis saat login jika hash lama masih memakai cost lebih rendah
+- Validasi password baru: minimal 10 karakter, huruf besar, huruf kecil, angka, dan simbol
+- Local vault file untuk secret lokal di `secrets/vault.json`
 - Session Authentication
 - CSRF Protection
 - Role-Based Access Control

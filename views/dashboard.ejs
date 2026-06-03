@@ -25,6 +25,86 @@
     <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
     <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
 
+    <% if (user.role === 'admin' || Number(user.is_kosma || 0) === 1) { %>
+        <section class="dashboard-editorial-grid">
+            <article class="content-card news-composer-card">
+                <div class="dashboard-section-header">
+                    <div>
+                        <span class="value-badge">Dari Iman ke Taqwa</span>
+                        <h2>Kelola Berita Kelas</h2>
+                        <p>Tulis kabar kelas yang menonjolkan Shidiq, Amanah, ilmu, dan adab.</p>
+                    </div>
+                </div>
+
+                <form action="/announcements/create" method="POST" class="news-form">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <label>
+                        Judul Berita
+                        <input type="text" name="title" placeholder="Contoh: Kajian Adab Menuntut Ilmu" required>
+                    </label>
+                    <div class="form-row">
+                        <label>
+                            Waktu
+                            <input type="datetime-local" name="published_at">
+                        </label>
+                        <label>
+                            Visibilitas
+                            <select name="visibility">
+                                <option value="public">Publik</option>
+                                <option value="private">Internal</option>
+                            </select>
+                        </label>
+                    </div>
+                    <label>
+                        Link Foto
+                        <input type="url" name="image_url" placeholder="https://...">
+                    </label>
+                    <label>
+                        Narasi
+                        <textarea name="content" rows="6" placeholder="Tulis narasi singkat, jernih, dan bernilai..." required></textarea>
+                    </label>
+                    <button type="submit" class="btn-primary full-width">Terbitkan Berita</button>
+                </form>
+            </article>
+
+            <article class="content-card news-admin-card">
+                <div class="dashboard-section-header">
+                    <div>
+                        <h2>Berita Terbaru</h2>
+                        <p>Berita publik tampil di halaman index.</p>
+                    </div>
+                </div>
+
+                <% if (!announcements || announcements.length === 0) { %>
+                    <div class="empty-state">Belum ada berita.</div>
+                <% } else { %>
+                    <div class="news-admin-list">
+                        <% announcements.forEach(item => { %>
+                            <article class="news-admin-item">
+                                <div class="news-admin-thumb <% if (!item.image_url) { %>news-thumb-empty<% } %>">
+                                    <% if (item.image_url) { %>
+                                        <img src="<%= item.image_url %>" alt="<%= item.title %>">
+                                    <% } else { %>
+                                        <span>AM</span>
+                                    <% } %>
+                                </div>
+                                <div>
+                                    <div class="news-meta"><%= item.published_at || item.created_at || '-' %> · <%= item.visibility || 'public' %></div>
+                                    <strong><%= item.title %></strong>
+                                    <p><%= item.content.length > 90 ? item.content.substring(0, 90) + '...' : item.content %></p>
+                                </div>
+                                <form action="/announcements/<%= item.id %>/delete" method="POST" onsubmit="return confirm('Hapus berita ini?')">
+                                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                    <button type="submit" class="btn-small-danger">Hapus</button>
+                                </form>
+                            </article>
+                        <% }) %>
+                    </div>
+                <% } %>
+            </article>
+        </section>
+    <% } %>
+
     <% if (user.role === 'admin' || user.role === 'lecturer' || Number(user.is_kosma || 0) === 1) { %>
         <section class="content-card">
             <div class="dashboard-section-header">

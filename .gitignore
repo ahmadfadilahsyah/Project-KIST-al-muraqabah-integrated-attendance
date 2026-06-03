@@ -1,3 +1,4 @@
 node_modules
 .env
 absensi.db
+secrets/vault.json

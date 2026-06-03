@@ -1,15 +1,15 @@
 const db = require('./database');
-const bcrypt = require('bcrypt');
+const { hashPassword } = require('./utils/password');
 
 const NIM = 'D001';
-const PASSWORD = 'dosen123';
+const PASSWORD = 'Dosen123!';
 const NAMA = 'Dosen Al Muraqabah';
 const EMAIL = 'dosen@example.com';
 
 async function main() {
     await db.ready;
 
-    const hashedPassword = await bcrypt.hash(PASSWORD, 10);
+    const hashedPassword = await hashPassword(PASSWORD);
     const user = await db.getAsync('SELECT nim, nama, email, role FROM users WHERE nim = ?', [NIM]);
 
     if (user) {

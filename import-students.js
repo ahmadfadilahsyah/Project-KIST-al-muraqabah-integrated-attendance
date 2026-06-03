@@ -1,5 +1,5 @@
 const db = require('./database');
-const bcrypt = require('bcrypt');
+const { hashPassword } = require('./utils/password');
 
 const students = [
     { nim: '2488010069', nama: 'AHMAD ALY' },
@@ -27,12 +27,12 @@ const students = [
     { nim: '2488010068', nama: 'SALLAM' }
 ];
 
-const DEFAULT_PASSWORD = 'mahasiswa123';
+const DEFAULT_PASSWORD = 'Mahasiswa123!';
 
 async function main() {
     await db.ready;
 
-    const hashedPassword = await bcrypt.hash(DEFAULT_PASSWORD, 10);
+    const hashedPassword = await hashPassword(DEFAULT_PASSWORD);
     let inserted = 0;
     let skipped = 0;
 

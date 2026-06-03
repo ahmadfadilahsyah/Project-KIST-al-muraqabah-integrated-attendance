@@ -1,4 +1,4 @@
-require('dotenv').config();
+require('./utils/secrets').loadSecrets();
 
 const express = require('express');
 const session = require('express-session');
@@ -37,8 +37,8 @@ app.set('trust proxy', 1);
 
 const fallbackSecret = 'al-muraqabah-secret-change-me';
 const sessionSecret = process.env.SESSION_SECRET || fallbackSecret;
-if (process.env.NODE_ENV === 'production' && sessionSecret === fallbackSecret) {
-    console.error('SESSION_SECRET wajib diatur dengan nilai kuat saat NODE_ENV=production.');
+if (process.env.NODE_ENV === 'production' && (sessionSecret === fallbackSecret || sessionSecret.length < 32)) {
+    console.error('SESSION_SECRET wajib diatur minimal 32 karakter saat NODE_ENV=production.');
     process.exit(1);
 }
 

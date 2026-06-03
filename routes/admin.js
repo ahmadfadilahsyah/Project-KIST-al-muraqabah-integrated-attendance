@@ -1,7 +1,7 @@
 const express = require('express');
-const bcrypt = require('bcrypt');
 const db = require('../database');
 const { requireAuth, requireAdmin, requireAdminOrKosma, isAdmin, isKosma } = require('../utils/access');
+const { hashPassword, validatePasswordStrength } = require('../utils/password');
 
 const router = express.Router();
 
@@ -63,10 +63,12 @@ router.post('/users/create', requireAdminOrKosma, async (req, res) => {
 
     if (!canManageTarget(req.session.user, fixedRole)) return renderError('Kosma hanya boleh menambah akun mahasiswa.');
     if (!nim || !nama || !password) return renderError('Username/NIM, nama, dan password wajib diisi.');
-    if (password.length < 6) return renderError('Password minimal 6 karakter.');
+
+    const passwordCheck = validatePasswordStrength(password);
+    if (!passwordCheck.valid) return renderError(passwordCheck.message);
 
     try {
-        const hashedPassword = await bcrypt.hash(password, 10);
+        const hashedPassword = await hashPassword(password);
         db.run(
             `INSERT INTO users (nim, nama, email, password, role, status, must_change_password, created_at)
              VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
@@ -123,13 +125,14 @@ router.post('/users/:nim/edit', requireAdminOrKosma, (req, res) => {
 
 router.post('/users/:nim/reset-password', requireAdminOrKosma, async (req, res) => {
     const { new_password } = req.body;
-    if (!new_password || new_password.length < 6) return res.status(400).send('Password baru minimal 6 karakter.');
+    const passwordCheck = validatePasswordStrength(new_password);
+    if (!passwordCheck.valid) return res.status(400).send(passwordCheck.message);
 
     db.get('SELECT role FROM users WHERE nim = ?', [req.params.nim], async (err, target) => {
         if (err || !target) return res.status(404).send('User tidak ditemukan.');
         if (!canManageTarget(req.session.user, target.role)) return res.status(403).send('Kosma hanya boleh reset password mahasiswa.');
 
-        const hashedPassword = await bcrypt.hash(new_password, 10);
+        const hashedPassword = await hashPassword(new_password);
         db.run(
             `UPDATE users SET password = ?, must_change_password = 1, updated_at = CURRENT_TIMESTAMP WHERE nim = ?`,
             [hashedPassword, req.params.nim],

@@ -1,6 +1,6 @@
 const express = require('express');
 const db = require('../database');
-const { requireAuth, isAdmin, isLecturer, isKosma, isStudent } = require('../utils/access');
+const { requireAuth, requireAdminOrKosma, isAdmin, isLecturer, isKosma, isStudent } = require('../utils/access');
 
 const router = express.Router();
 
@@ -39,16 +39,42 @@ router.get('/dashboard', requireAuth, (req, res) => {
                     console.error('Dashboard sessions error:', err);
                     return res.status(500).send('Database error saat mengambil sesi.');
                 }
-                res.render('dashboard', {
-                    pageTitle: isAdmin(user) ? 'Dashboard Admin' : isKosma(user) ? 'Dashboard Kosma' : 'Dashboard Dosen',
-                    pageSubtitle: 'Kelola sesi, mata kuliah, dan rekap kehadiran kelas',
-                    user,
-                    stats: stats || {},
-                    sessions,
-                    attendanceHistory: [],
-                    success: req.query.success || null,
-                    error: req.query.error || null
-                });
+                if (!isAdmin(user) && !isKosma(user)) {
+                    return res.render('dashboard', {
+                        pageTitle: 'Dashboard Dosen',
+                        pageSubtitle: 'Kelola sesi, mata kuliah, dan rekap kehadiran kelas',
+                        user,
+                        stats: stats || {},
+                        sessions,
+                        announcements: [],
+                        attendanceHistory: [],
+                        success: req.query.success || null,
+                        error: req.query.error || null
+                    });
+                }
+
+                db.all(
+                    `SELECT a.*, u.nama AS author_name
+                     FROM announcements a
+                     LEFT JOIN users u ON u.nim = a.created_by
+                     ORDER BY COALESCE(a.published_at, a.created_at) DESC, a.id DESC
+                     LIMIT 5`,
+                    [],
+                    (err, announcements) => {
+                        if (err) return res.status(500).send('Database error saat mengambil berita.');
+                        res.render('dashboard', {
+                            pageTitle: isAdmin(user) ? 'Dashboard Admin' : 'Dashboard Kosma',
+                            pageSubtitle: 'Kelola sesi, berita kelas, mata kuliah, dan rekap kehadiran',
+                            user,
+                            stats: stats || {},
+                            sessions,
+                            announcements,
+                            attendanceHistory: [],
+                            success: req.query.success || null,
+                            error: req.query.error || null
+                        });
+                    }
+                );
             });
         } else {
             db.all(
@@ -86,6 +112,44 @@ router.get('/dashboard', requireAuth, (req, res) => {
                 }
             );
         }
+    });
+});
+
+router.post('/announcements/create', requireAdminOrKosma, (req, res) => {
+    const { title, content, image_url, published_at, visibility } = req.body;
+
+    if (!title || !content) {
+        return res.redirect('/dashboard?error=Judul dan narasi berita wajib diisi.');
+    }
+
+    db.run(
+        `INSERT INTO announcements (title, content, image_url, published_at, visibility, created_by, created_at)
+         VALUES (?, ?, ?, COALESCE(NULLIF(?, '')::timestamp, CURRENT_TIMESTAMP), ?, ?, CURRENT_TIMESTAMP)`,
+        [
+            title.trim(),
+            content.trim(),
+            image_url ? image_url.trim() : null,
+            published_at || null,
+            visibility || 'public',
+            req.session.user.nim
+        ],
+        (err) => {
+            if (err) {
+                console.error('Create announcement error:', err);
+                return res.redirect('/dashboard?error=Gagal membuat berita.');
+            }
+            res.redirect('/dashboard?success=Berita berhasil diterbitkan.');
+        }
+    );
+});
+
+router.post('/announcements/:id/delete', requireAdminOrKosma, (req, res) => {
+    db.run('DELETE FROM announcements WHERE id = ?', [req.params.id], (err) => {
+        if (err) {
+            console.error('Delete announcement error:', err);
+            return res.redirect('/dashboard?error=Gagal menghapus berita.');
+        }
+        res.redirect('/dashboard?success=Berita berhasil dihapus.');
     });
 });
 

@@ -1,7 +1,7 @@
 const express = require('express');
-const bcrypt = require('bcrypt');
 const db = require('../database');
 const { normalizeRole } = require('../utils/access');
+const { hashPassword, verifyPassword, needsPasswordRehash, validatePasswordStrength } = require('../utils/password');
 
 const router = express.Router();
 
@@ -51,8 +51,8 @@ router.get('/', (req, res) => {
                  FROM announcements a
                  LEFT JOIN users u ON u.nim = a.created_by
                  WHERE a.visibility = 'public'
-                 ORDER BY a.created_at DESC, a.id DESC
-                 LIMIT 3`,
+                 ORDER BY COALESCE(a.published_at, a.created_at) DESC, a.id DESC
+                 LIMIT 6`,
                 [],
                 (err, announcements) => {
                     if (err) return res.status(500).send('Gagal memuat pengumuman.');
@@ -124,8 +124,17 @@ router.post('/login', (req, res) => {
         if (user.status === 'inactive') return res.render('login', { error: 'Akun Anda sedang nonaktif.' });
 
         let match = false;
-        try { match = await bcrypt.compare(password, user.password); } catch (error) { console.error(error); }
+        try { match = await verifyPassword(password, user.password); } catch (error) { console.error(error); }
         if (!match) return res.render('login', { error: 'Username/NIM atau password salah.' });
+
+        if (needsPasswordRehash(user.password)) {
+            try {
+                const upgradedHash = await hashPassword(password);
+                db.run('UPDATE users SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE nim = ?', [upgradedHash, user.nim]);
+            } catch (error) {
+                console.error('Password rehash gagal:', error);
+            }
+        }
 
         enrichUserSession(user, (err, sessionUser) => {
             if (err) {
@@ -220,15 +229,16 @@ router.post('/profile/change-password', (req, res) => {
     };
 
     if (!old_password || !new_password || !confirm_password) return renderProfile('Semua field password wajib diisi.');
-    if (new_password.length < 6) return renderProfile('Password baru minimal 6 karakter.');
+    const passwordCheck = validatePasswordStrength(new_password);
+    if (!passwordCheck.valid) return renderProfile(passwordCheck.message);
     if (new_password !== confirm_password) return renderProfile('Konfirmasi password tidak sama.');
 
     db.get('SELECT password FROM users WHERE nim = ?', [req.session.user.nim], async (err, user) => {
         if (err || !user) return renderProfile('User tidak ditemukan.');
-        const match = await bcrypt.compare(old_password, user.password);
+        const match = await verifyPassword(old_password, user.password);
         if (!match) return renderProfile('Password lama salah.');
 
-        const hashedPassword = await bcrypt.hash(new_password, 10);
+        const hashedPassword = await hashPassword(new_password);
         db.run(
             'UPDATE users SET password = ?, must_change_password = 0, updated_at = CURRENT_TIMESTAMP WHERE nim = ?',
             [hashedPassword, req.session.user.nim],
