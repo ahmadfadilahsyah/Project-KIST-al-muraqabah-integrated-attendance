@@ -268,7 +268,7 @@ Project ini dikembangkan sebagai:
 
 Program Studi Informatika
 
-Institut Teknologi dan Sains KIST
+UIN Siber Syekh Nurjati Cirebon
 
 ---
 
