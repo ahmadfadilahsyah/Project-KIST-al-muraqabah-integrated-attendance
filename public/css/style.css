@@ -280,7 +280,7 @@ button, .btn-primary, .btn-secondary, .btn-small, .btn-small-danger {
 }
 .btn-small { background: #eef2ff; color: #4338ca; }
 .btn-small-danger { background: #fee2e2; color: #991b1b; }
-.table-actions { display: flex; align-items: center; gap: 10px; }
+.table-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
 
 .alert { padding: 14px 18px; border-radius: 16px; margin-bottom: 18px; font-weight: 700; }
 .alert-error { background: #fee2e2; color: #991b1b; }
@@ -313,6 +313,7 @@ tbody tr:hover { background: #f8fafc; }
 .qr-display-box img { width: 300px; background: #fff; padding: 18px; border-radius: 22px; box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12); }
 .qr-loading { color: var(--primary); font-weight: 900; }
 .qr-footer-info { padding: 16px; border-radius: 18px; background: #f8fafc; color: #475569; }
+.attendance-live-card { margin-top: 22px; padding-top: 22px; border-top: 1px solid var(--border); }
 .qr-reader-box { width: 100%; max-width: 430px; margin: 22px auto; padding: 14px; border-radius: 22px; background: #f8fafc; border: 1px dashed #a7f3d0; }
 .qr-reader-box video { border-radius: 18px; }
 

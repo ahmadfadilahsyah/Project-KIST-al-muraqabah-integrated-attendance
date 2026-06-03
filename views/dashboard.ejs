@@ -22,6 +22,9 @@
         <div class="stat-card"><p>Sesi Aktif</p><h2><%= stats.activeSessions || 0 %></h2></div>
     </section>
 
+    <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
+    <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+
     <% if (user.role === 'admin' || user.role === 'lecturer' || Number(user.is_kosma || 0) === 1) { %>
         <section class="content-card">
             <div class="dashboard-section-header">
@@ -57,10 +60,14 @@
                                     <td><span class="badge hadir"><%= session.hadir || 0 %> Hadir</span></td>
                                     <td>
                                         <div class="table-actions">
-                                            <a href="/show-qr/<%= session.id %>" class="btn-small">Lihat QR</a>
+                                            <a href="/show-qr/<%= session.id %>" class="btn-small">Lihat QR & Hadir</a>
                                             <form action="/delete-session/<%= session.id %>" method="POST" onsubmit="return confirm('Nonaktifkan sesi ini?')">
                                                 <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                                 <button type="submit" class="btn-small-danger">Nonaktifkan</button>
+                                            </form>
+                                            <form action="/sessions/<%= session.id %>/delete" method="POST" onsubmit="return confirm('Hapus permanen sesi ini? Daftar hadir dan token QR sesi ini ikut terhapus.')">
+                                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                                <button type="submit" class="btn-small-danger">Hapus</button>
                                             </form>
                                         </div>
                                     </td>

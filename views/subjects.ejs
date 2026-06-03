@@ -46,6 +46,10 @@
                         <div class="button-row">
                             <a href="/subjects/<%= subject.id %>/edit" class="btn-secondary">Edit</a>
                             <a href="/subjects/<%= subject.id %>/manage" class="btn-secondary">Kelola PJ & Dosen</a>
+                            <form action="/subjects/<%= subject.id %>/delete" method="POST" onsubmit="return confirm('Hapus mata kuliah ini? Sesi dan absensi terkait juga ikut terhapus.')">
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                <button type="submit" class="btn-small-danger">Hapus</button>
+                            </form>
                         </div>
                     <% } %>
                 </article>

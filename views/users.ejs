@@ -44,6 +44,12 @@
                                             <form action="/users/<%= item.nim %>/kosma" method="POST"><input type="hidden" name="_csrf" value="<%= csrfToken %>"><button class="btn-small" type="submit">Jadikan Kosma</button></form>
                                         <% } %>
                                     <% } %>
+                                    <% if (item.nim !== currentUser.nim) { %>
+                                        <form action="/users/<%= item.nim %>/delete" method="POST" onsubmit="return confirm('Hapus user ini? Data terkait user ini juga ikut terhapus.')">
+                                            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                            <button class="btn-small-danger" type="submit">Hapus</button>
+                                        </form>
+                                    <% } %>
                                 </div>
                             </td>
                         </tr>

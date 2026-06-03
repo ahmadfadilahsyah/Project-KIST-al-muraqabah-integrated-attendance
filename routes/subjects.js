@@ -216,6 +216,19 @@ router.post('/subjects/:id/edit', requireAdminOrKosma, async (req, res) => {
     }
 });
 
+router.post('/subjects/:id/delete', requireAdminOrKosma, async (req, res) => {
+    try {
+        const subject = await db.getAsync(`SELECT id FROM subjects WHERE id = ?`, [req.params.id]);
+        if (!subject) return res.redirect('/subjects?error=Mata kuliah tidak ditemukan.');
+
+        await db.runAsync(`DELETE FROM subjects WHERE id = ?`, [req.params.id]);
+        res.redirect('/subjects?success=Mata kuliah berhasil dihapus.');
+    } catch (err) {
+        console.error('Subject delete error:', err);
+        res.redirect('/subjects?error=Gagal menghapus mata kuliah.');
+    }
+});
+
 router.get('/subjects/:id/manage', requireAdminOrKosma, async (req, res) => {
     try {
         const subject = await db.getAsync(`SELECT * FROM subjects WHERE id = ?`, [req.params.id]);

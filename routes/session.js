@@ -229,6 +229,60 @@ router.get('/api/qr-token/:sessionId', requireAuth, (req, res) => {
     );
 });
 
+router.get('/api/sessions/:sessionId/attendance', requireAuth, (req, res) => {
+    const sessionId = req.params.sessionId;
+
+    db.get(
+        `SELECT se.*, sub.name AS subject_name
+         FROM sessions se
+         LEFT JOIN subjects sub ON sub.id = se.subject_id
+         WHERE se.id = ?`,
+        [sessionId],
+        (err, session) => {
+            if (err) return res.status(500).json({ success: false, message: 'Gagal mengambil sesi.' });
+            if (!session) return res.status(404).json({ success: false, message: 'Sesi tidak ditemukan.' });
+
+            canCreateForSubject(req.session.user, session.subject_id, (err, allowed) => {
+                if (err || !allowed) {
+                    return res.status(403).json({ success: false, message: 'Anda tidak punya akses melihat daftar hadir sesi ini.' });
+                }
+
+                db.all(
+                    `SELECT a.id, a.nim, a.status, a.method, a.distance_meters, a.created_at, u.nama
+                     FROM attendance a
+                     JOIN users u ON u.nim = a.nim
+                     WHERE a.session_id = ?
+                     ORDER BY a.created_at DESC, a.id DESC`,
+                    [sessionId],
+                    (err, attendees) => {
+                        if (err) return res.status(500).json({ success: false, message: 'Gagal mengambil daftar hadir.' });
+
+                        db.get(
+                            `SELECT COUNT(*) AS total_students FROM users WHERE role = 'student' AND status = 'active'`,
+                            [],
+                            (err, summary) => {
+                                if (err) return res.status(500).json({ success: false, message: 'Gagal mengambil ringkasan hadir.' });
+                                res.json({
+                                    success: true,
+                                    session: {
+                                        id: session.id,
+                                        judul: session.judul,
+                                        subject_name: session.subject_name,
+                                        active: session.active
+                                    },
+                                    count: attendees.length,
+                                    totalStudents: Number(summary ? summary.total_students : 0),
+                                    attendees
+                                });
+                            }
+                        );
+                    }
+                );
+            });
+        }
+    );
+});
+
 router.post('/delete-session/:sessionId', requireAuth, (req, res) => {
     db.get('SELECT * FROM sessions WHERE id = ?', [req.params.sessionId], (err, session) => {
         if (err || !session) return res.status(404).send('Sesi tidak ditemukan.');
@@ -237,7 +291,24 @@ router.post('/delete-session/:sessionId', requireAuth, (req, res) => {
             if (err || !allowed) return res.status(403).send('Anda tidak punya akses menonaktifkan sesi ini.');
             db.run('UPDATE sessions SET active = 0 WHERE id = ?', [req.params.sessionId], (err) => {
                 if (err) return res.status(500).send('Gagal menonaktifkan sesi.');
-                res.redirect('/dashboard');
+                res.redirect('/dashboard?success=Sesi berhasil dinonaktifkan.');
+            });
+        });
+    });
+});
+
+router.post('/sessions/:sessionId/delete', requireAuth, (req, res) => {
+    db.get('SELECT * FROM sessions WHERE id = ?', [req.params.sessionId], (err, session) => {
+        if (err || !session) return res.redirect('/dashboard?error=Sesi tidak ditemukan.');
+
+        canCreateForSubject(req.session.user, session.subject_id, (err, allowed) => {
+            if (err || !allowed) return res.status(403).send('Anda tidak punya akses menghapus sesi ini.');
+            db.run('DELETE FROM sessions WHERE id = ?', [req.params.sessionId], (err) => {
+                if (err) {
+                    console.error('Delete session error:', err);
+                    return res.redirect('/dashboard?error=Gagal menghapus sesi.');
+                }
+                res.redirect('/dashboard?success=Sesi berhasil dihapus.');
             });
         });
     });

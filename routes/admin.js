@@ -30,7 +30,7 @@ router.get('/users', requireAdminOrKosma, (req, res) => {
                 pageSubtitle: isAdmin(currentUser) ? 'Kelola admin, dosen, dan mahasiswa' : 'Kelola mahasiswa dan akses kelas',
                 users,
                 currentUser,
-                error: null,
+                error: req.query.error || null,
                 success: req.query.success || null
             });
         }
@@ -138,6 +138,26 @@ router.post('/users/:nim/reset-password', requireAdminOrKosma, async (req, res) 
                 res.redirect('/users?success=Password berhasil direset.');
             }
         );
+    });
+});
+
+router.post('/users/:nim/delete', requireAdminOrKosma, (req, res) => {
+    db.get('SELECT role FROM users WHERE nim = ?', [req.params.nim], (err, target) => {
+        if (err || !target) return res.redirect('/users?error=User tidak ditemukan.');
+        if (req.params.nim === req.session.user.nim) {
+            return res.redirect('/users?error=Akun yang sedang login tidak bisa dihapus.');
+        }
+        if (!canManageTarget(req.session.user, target.role)) {
+            return res.redirect('/users?error=Anda tidak punya akses menghapus user ini.');
+        }
+
+        db.run('DELETE FROM users WHERE nim = ?', [req.params.nim], (err) => {
+            if (err) {
+                console.error('Delete user error:', err);
+                return res.redirect('/users?error=Gagal menghapus user.');
+            }
+            res.redirect('/users?success=User berhasil dihapus.');
+        });
     });
 });
 

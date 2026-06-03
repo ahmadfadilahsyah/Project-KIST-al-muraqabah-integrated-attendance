@@ -45,7 +45,9 @@ router.get('/dashboard', requireAuth, (req, res) => {
                     user,
                     stats: stats || {},
                     sessions,
-                    attendanceHistory: []
+                    attendanceHistory: [],
+                    success: req.query.success || null,
+                    error: req.query.error || null
                 });
             });
         } else {
@@ -75,7 +77,9 @@ router.get('/dashboard', requireAuth, (req, res) => {
                                 stats: stats || {},
                                 sessions: [],
                                 attendanceHistory,
-                                pjSubjects
+                                pjSubjects,
+                                success: req.query.success || null,
+                                error: req.query.error || null
                             });
                         }
                     );

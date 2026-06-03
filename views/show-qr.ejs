@@ -54,6 +54,33 @@
             <p>QR diperbarui otomatis setiap <strong>30 detik</strong>. Token aktif singkat untuk mengurangi penyebaran screenshot.</p>
             <p id="qr-status">Menunggu QR aktif...</p>
         </div>
+
+        <section class="attendance-live-card">
+            <div class="dashboard-section-header">
+                <div>
+                    <h2>Daftar Hadir Realtime</h2>
+                    <p>Mahasiswa yang berhasil scan dan lolos GPS akan otomatis muncul di sini.</p>
+                </div>
+                <span class="badge hadir" id="attendance-count">0 Hadir</span>
+            </div>
+            <div id="attendance-status" class="info-box">Memuat daftar hadir...</div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>NIM</th>
+                            <th>Nama</th>
+                            <th>Waktu</th>
+                            <th>Metode</th>
+                            <th>Jarak</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendance-body">
+                        <tr><td colspan="5">Belum ada mahasiswa yang hadir.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </section>
 </main>
 
@@ -63,6 +90,18 @@
     const qrImage = document.getElementById('qr-image');
     const qrLoading = document.getElementById('qr-loading');
     const qrStatus = document.getElementById('qr-status');
+    const attendanceCount = document.getElementById('attendance-count');
+    const attendanceStatus = document.getElementById('attendance-status');
+    const attendanceBody = document.getElementById('attendance-body');
+
+    function escapeHtml(value) {
+        return String(value ?? '-')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
 
     async function loadQrCode() {
         try {
@@ -124,8 +163,47 @@
         }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
     }
 
+    async function loadAttendance() {
+        try {
+            const response = await fetch(`/api/sessions/${sessionId}/attendance`, { headers: { 'Accept': 'application/json' } });
+            const data = await response.json();
+
+            if (!response.ok || !data.success) {
+                attendanceStatus.textContent = data.message || 'Gagal memuat daftar hadir.';
+                return;
+            }
+
+            attendanceCount.textContent = `${data.count} Hadir`;
+            attendanceStatus.textContent = `Terakhir diperbarui ${new Date().toLocaleTimeString('id-ID')}. Total mahasiswa aktif: ${data.totalStudents}.`;
+
+            if (!data.attendees || data.attendees.length === 0) {
+                attendanceBody.innerHTML = '<tr><td colspan="5">Belum ada mahasiswa yang hadir.</td></tr>';
+                return;
+            }
+
+            attendanceBody.innerHTML = data.attendees.map((item) => {
+                const distance = item.distance_meters === null || item.distance_meters === undefined
+                    ? '-'
+                    : `${Math.round(Number(item.distance_meters))} m`;
+                return `
+                    <tr>
+                        <td>${escapeHtml(item.nim)}</td>
+                        <td><strong>${escapeHtml(item.nama)}</strong></td>
+                        <td>${escapeHtml(item.created_at)}</td>
+                        <td>${escapeHtml(item.method)}</td>
+                        <td>${escapeHtml(distance)}</td>
+                    </tr>
+                `;
+            }).join('');
+        } catch (error) {
+            attendanceStatus.textContent = 'Gagal memperbarui daftar hadir.';
+        }
+    }
+
     loadQrCode();
+    loadAttendance();
     setInterval(loadQrCode, 30000);
+    setInterval(loadAttendance, 3000);
 </script>
 </body>
 </html>
