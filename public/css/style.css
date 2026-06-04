@@ -1190,7 +1190,8 @@ body {
 
 .report-signature {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(260px, 360px);
+    justify-content: end;
     gap: 18px;
     margin-top: 28px;
 }
@@ -1364,6 +1365,13 @@ input[type="file"]::file-selector-button {
     .report-letterhead {
         align-items: flex-start;
     }
+    .report-document-title {
+        text-align: left;
+    }
+    .report-document-title h1 {
+        font-size: 18px;
+        line-height: 1.35;
+    }
     .report-print-btn,
     .dashboard-action-row,
     .dashboard-action-row .btn-primary,
@@ -1393,7 +1401,70 @@ input[type="file"]::file-selector-button {
     }
     .attendance-status-form {
         grid-template-columns: 1fr;
-        min-width: 220px;
+        min-width: 0;
+        width: 100%;
+    }
+    .report-table-wrapper {
+        overflow: visible;
+        border: 0;
+        border-radius: 0;
+    }
+    .report-table {
+        display: block;
+        min-width: 0;
+        width: 100%;
+    }
+    .report-table thead {
+        display: none;
+    }
+    .report-table tbody,
+    .report-table tr,
+    .report-table td {
+        display: block;
+        width: 100%;
+    }
+    .report-table tbody tr {
+        margin-bottom: 12px;
+        padding: 12px;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, .06);
+    }
+    .report-table th:first-child,
+    .report-table td:first-child {
+        width: 100%;
+        text-align: right;
+    }
+    .report-table td {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 10px 0;
+        border-bottom: 1px solid #e2e8f0;
+        text-align: right;
+    }
+    .report-table td::before {
+        content: attr(data-label);
+        flex: 0 0 118px;
+        color: var(--text-soft);
+        font-weight: 900;
+        text-align: left;
+    }
+    .report-table td:last-child {
+        border-bottom: 0;
+    }
+    .report-table td.no-print {
+        display: block;
+        text-align: left;
+    }
+    .report-table td.no-print::before {
+        display: block;
+        margin-bottom: 8px;
+    }
+    .report-table .badge {
+        align-self: flex-start;
     }
     .scan-camera-page .mobile-bottom-nav {
         display: none;
@@ -1464,6 +1535,43 @@ input[type="file"]::file-selector-button {
     table {
         min-width: 0 !important;
         font-size: 11px;
+    }
+
+    .report-table {
+        display: table !important;
+        width: auto !important;
+    }
+
+    .report-table thead {
+        display: table-header-group !important;
+    }
+
+    .report-table tbody {
+        display: table-row-group !important;
+    }
+
+    .report-table tr {
+        display: table-row !important;
+        width: auto !important;
+    }
+
+    .report-table th,
+    .report-table td {
+        display: table-cell !important;
+        width: auto !important;
+        text-align: left !important;
+        border-bottom: 1px solid #e5e7eb !important;
+    }
+
+    .report-table td::before {
+        content: none !important;
+    }
+
+    .report-table tbody tr {
+        margin-bottom: 0 !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
     }
 
     th,

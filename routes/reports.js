@@ -146,18 +146,24 @@ function fitText(value, maxLength) {
 function buildAttendancePdf(report) {
     const pageWidth = 595;
     const pageHeight = 842;
-    const margin = 42;
+    const margin = 40;
     const rowHeight = 20;
-    const rowsPerPage = 26;
+    const headerHeight = 22;
+    const rowsPerPage = 24;
     const pages = Math.max(Math.ceil(report.rows.length / rowsPerPage), 1);
     const generatedAt = new Date().toLocaleString('id-ID');
     const subjectName = report.selectedSubject ? report.selectedSubject.name : '-';
     const subjectCode = report.selectedSubject && report.selectedSubject.code ? report.selectedSubject.code : '-';
     const sessionTitle = report.selectedSession ? report.selectedSession.judul || 'Tanpa Judul' : '-';
+    const printerRole = report.user.is_kosma
+        ? 'Kosma'
+        : (report.user.role === 'admin' ? 'Admin' : (report.user.role === 'lecturer' ? 'Dosen' : 'PJ'));
+    const tableWidth = pageWidth - (margin * 2);
 
     const drawText = (x, y, size, text, bold = false) =>
         `BT /${bold ? 'F2' : 'F1'} ${size} Tf ${x} ${y} Td (${escapePdfText(text)}) Tj ET\n`;
     const drawLine = (x1, y1, x2, y2) => `${x1} ${y1} m ${x2} ${y2} l S\n`;
+    const drawRect = (x, y, width, height, fill = false) => `${x} ${y} ${width} ${height} re ${fill ? 'f' : 'S'}\n`;
 
     const pageStreams = [];
     for (let pageIndex = 0; pageIndex < pages; pageIndex += 1) {
@@ -166,89 +172,101 @@ function buildAttendancePdf(report) {
         let y = pageHeight - margin;
         let stream = '0.2 w\n';
 
-        stream += drawText(margin, y, 14, 'INFORMATIKA A 2024', true);
-        y -= 16;
-        stream += drawText(margin, y, 10, 'Al-Muraqabah Integrated Attendance System');
-        y -= 13;
+        stream += drawText(margin, y, 15, 'INFORMATIKA A 2024', true);
+        stream += drawText(pageWidth - 192, y, 9, 'Al-Muraqabah Integrated Attendance', false);
+        y -= 15;
         stream += drawText(margin, y, 9, 'Laporan kehadiran perkuliahan berbasis QR dan validasi GPS');
-        y -= 14;
+        stream += drawText(pageWidth - 132, y, 8, `Halaman ${pageIndex + 1}/${pages}`);
+        y -= 12;
         stream += drawLine(margin, y, pageWidth - margin, y);
         y -= 5;
         stream += drawLine(margin, y, pageWidth - margin, y);
-        y -= 22;
+        y -= 20;
 
-        stream += drawText(165, y, 13, 'LAPORAN ABSENSI PERKULIAHAN', true);
+        stream += drawText(168, y, 13, 'LAPORAN ABSENSI PERKULIAHAN', true);
         y -= 15;
-        stream += drawText(190, y, 9, 'Dokumen Administrasi Kehadiran Mahasiswa');
-        y -= 24;
+        stream += drawText(184, y, 9, 'Dokumen Administrasi Kehadiran Mahasiswa');
+        y -= 22;
 
         const labelX = margin;
-        const valueX = 132;
+        const valueX = 128;
+        const rightLabelX = 342;
+        const rightValueX = 430;
         stream += drawText(labelX, y, 9, 'Mata Kuliah');
-        stream += drawText(valueX, y, 9, `: ${fitText(subjectName, 48)}`, true);
-        y -= 14;
-        stream += drawText(labelX, y, 9, 'Kode');
-        stream += drawText(valueX, y, 9, `: ${subjectCode}`);
+        stream += drawText(valueX, y, 9, `: ${fitText(subjectName, 35)}`, true);
+        stream += drawText(rightLabelX, y, 9, 'Kode');
+        stream += drawText(rightValueX, y, 9, `: ${subjectCode}`);
         y -= 14;
         stream += drawText(labelX, y, 9, 'Sesi');
-        stream += drawText(valueX, y, 9, `: ${fitText(sessionTitle, 48)}`, true);
+        stream += drawText(valueX, y, 9, `: ${fitText(sessionTitle, 35)}`, true);
+        stream += drawText(rightLabelX, y, 9, 'Dicetak');
+        stream += drawText(rightValueX, y, 9, `: ${fitText(generatedAt, 17)}`);
         y -= 14;
         stream += drawText(labelX, y, 9, 'Waktu Sesi');
-        stream += drawText(valueX, y, 9, `: ${report.selectedSession ? report.selectedSession.created_at || '-' : '-'}`);
-        y -= 16;
+        stream += drawText(valueX, y, 9, `: ${fitText(report.selectedSession ? report.selectedSession.created_at || '-' : '-', 35)}`);
+        stream += drawText(rightLabelX, y, 9, 'Pencetak');
+        stream += drawText(rightValueX, y, 9, `: ${fitText(report.user.nama || report.user.nim, 17)}`);
+        y -= 14;
         stream += drawText(margin, y, 10, `Total: ${report.summary.total}   Hadir: ${report.summary.hadir}   Izin: ${report.summary.izin}   Sakit: ${report.summary.sakit}   Alpha: ${report.summary.alpha}`, true);
-        y -= 22;
+        y -= 20;
 
         const columns = [
-            { x: margin, title: 'No', max: 4 },
-            { x: 72, title: 'NIM', max: 13 },
-            { x: 150, title: 'Nama', max: 25 },
-            { x: 310, title: 'Status', max: 11 },
-            { x: 382, title: 'Waktu', max: 16 },
-            { x: 480, title: 'Ket.', max: 14 }
+            { title: 'No', width: 30, max: 4, align: 'center' },
+            { title: 'NIM', width: 78, max: 13 },
+            { title: 'Nama', width: 158, max: 25 },
+            { title: 'Status', width: 62, max: 11 },
+            { title: 'Waktu', width: 92, max: 15 },
+            { title: 'Keterangan', width: 95, max: 15 }
         ];
+        let x = margin;
 
-        stream += drawLine(margin, y + 8, pageWidth - margin, y + 8);
+        stream += '0.93 g\n';
+        stream += drawRect(margin, y - headerHeight, tableWidth, headerHeight, true);
+        stream += '0 g\n';
+        stream += drawRect(margin, y - headerHeight, tableWidth, headerHeight);
         columns.forEach(column => {
-            stream += drawText(column.x, y, 9, column.title, true);
+            stream += drawText(x + 4, y - 14, 8.5, column.title, true);
+            stream += drawLine(x, y, x, y - headerHeight);
+            x += column.width;
         });
-        y -= 10;
-        stream += drawLine(margin, y, pageWidth - margin, y);
-        y -= 14;
+        stream += drawLine(margin + tableWidth, y, margin + tableWidth, y - headerHeight);
+        y -= headerHeight;
 
         if (pageRows.length === 0) {
-            stream += drawText(margin, y, 10, 'Belum ada data absensi untuk sesi ini.');
+            stream += drawRect(margin, y - rowHeight, tableWidth, rowHeight);
+            stream += drawText(margin + 6, y - 13, 9, 'Belum ada data absensi untuk sesi ini.');
+            y -= rowHeight;
         } else {
             pageRows.forEach((row, index) => {
                 const number = start + index + 1;
                 const statusLabels = { hadir: 'Hadir', izin: 'Izin', sakit: 'Sakit', alpha: 'Alpha' };
                 const status = statusLabels[row.status] || row.status || 'Alpha';
-                const distance = row.distance_meters === null || row.distance_meters === undefined
-                    ? '-'
-                    : `${Math.round(Number(row.distance_meters))} m`;
                 const values = [
                     number,
                     row.nim,
                     fitText(row.nama, 25),
                     status,
-                    fitText(row.created_at || '-', 16),
-                    fitText(row.note || distance || '-', 14)
+                    fitText(row.created_at || '-', 15),
+                    fitText(row.note || '-', 15)
                 ];
 
+                let rowX = margin;
+                stream += drawRect(margin, y - rowHeight, tableWidth, rowHeight);
                 columns.forEach((column, columnIndex) => {
-                    stream += drawText(column.x, y, 8.5, fitText(values[columnIndex], column.max));
+                    stream += drawLine(rowX, y, rowX, y - rowHeight);
+                    const value = fitText(values[columnIndex], column.max);
+                    const textX = column.align === 'center' ? rowX + 10 : rowX + 4;
+                    stream += drawText(textX, y - 13, 8, value);
+                    rowX += column.width;
                 });
+                stream += drawLine(margin + tableWidth, y, margin + tableWidth, y - rowHeight);
                 y -= rowHeight;
             });
         }
 
         if (pageIndex === pages - 1) {
-            stream += drawText(margin, 92, 9, 'Mengetahui,');
-            stream += drawText(margin, 78, 9, 'Dosen / Penanggung Jawab');
-            stream += drawText(margin, 34, 9, '(________________________)');
-            stream += drawText(360, 92, 9, `Dicetak: ${generatedAt}`);
-            stream += drawText(360, 78, 9, `Oleh: ${fitText(report.user.nama || report.user.nim, 24)}`);
-            stream += drawText(360, 34, 9, '(________________________)');
+            stream += drawText(360, 94, 9, `${printerRole} yang mencetak,`);
+            stream += drawText(360, 42, 9, fitText(report.user.nama || report.user.nim, 28), true);
         }
 
         stream += drawLine(margin, 24, pageWidth - margin, 24);

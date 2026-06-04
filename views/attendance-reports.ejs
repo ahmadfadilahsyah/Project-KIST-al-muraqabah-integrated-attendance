@@ -112,15 +112,15 @@
                     <tbody>
                         <% rows.forEach((row, index) => { %>
                             <tr>
-                                <td><%= index + 1 %></td>
-                                <td><%= row.nim %></td>
-                                <td><strong><%= row.nama %></strong></td>
-                                <td>
+                                <td data-label="No"><%= index + 1 %></td>
+                                <td data-label="NIM"><%= row.nim %></td>
+                                <td data-label="Nama"><strong><%= row.nama %></strong></td>
+                                <td data-label="Status">
                                     <span class="badge <%= row.status === 'hadir' ? 'hadir' : (row.status === 'izin' ? 'izin' : (row.status === 'sakit' ? 'sakit' : 'alpha')) %>">
                                         <%= row.status === 'hadir' ? 'Hadir' : (row.status === 'izin' ? 'Izin' : (row.status === 'sakit' ? 'Sakit' : 'Alpha')) %>
                                     </span>
                                 </td>
-                                <td class="no-print">
+                                <td class="no-print" data-label="Ubah Keterangan">
                                     <form action="/attendance-reports/status" method="POST" class="attendance-status-form">
                                         <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                         <input type="hidden" name="subject_id" value="<%= selectedSubjectId %>">
@@ -136,10 +136,10 @@
                                         <button type="submit" class="btn-small">Simpan</button>
                                     </form>
                                 </td>
-                                <td><%= row.created_at || '-' %></td>
-                                <td><%= row.method || '-' %></td>
-                                <td><%= row.note || '-' %></td>
-                                <td><%= row.distance_meters === null || row.distance_meters === undefined ? '-' : Math.round(Number(row.distance_meters)) + ' m' %></td>
+                                <td data-label="Waktu"><%= row.created_at || '-' %></td>
+                                <td data-label="Metode"><%= row.method || '-' %></td>
+                                <td data-label="Keterangan"><%= row.note || '-' %></td>
+                                <td data-label="Jarak"><%= row.distance_meters === null || row.distance_meters === undefined ? '-' : Math.round(Number(row.distance_meters)) + ' m' %></td>
                             </tr>
                         <% }) %>
                     </tbody>
@@ -147,11 +147,6 @@
             </div>
 
             <div class="report-signature">
-                <div>
-                    <span>Mengetahui</span>
-                    <strong>Dosen / Penanggung Jawab</strong>
-                    <em>(________________________)</em>
-                </div>
                 <div>
                     <span>Dicetak oleh</span>
                     <strong><%= user.nama || user.nim %></strong>
