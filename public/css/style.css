@@ -800,6 +800,69 @@ body {
 }
 .alert { padding: 14px 16px; border-radius: 16px; margin: 16px 0; font-weight: 800; }
 
+.attendance-popup[hidden] {
+    display: none;
+}
+
+.attendance-popup {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    display: grid;
+    place-items: center;
+    padding: 20px;
+}
+
+.attendance-popup__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.52);
+    backdrop-filter: blur(6px);
+}
+
+.attendance-popup__dialog {
+    position: relative;
+    z-index: 1;
+    width: min(420px, 100%);
+    padding: 26px;
+    border-radius: 24px;
+    background: #fff;
+    border: 1px solid var(--border);
+    box-shadow: 0 28px 70px rgba(15, 23, 42, 0.26);
+    text-align: center;
+}
+
+.attendance-popup__badge {
+    display: inline-flex;
+    margin-bottom: 12px;
+    padding: 7px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+.attendance-popup__dialog h2 {
+    margin-bottom: 10px;
+    font-size: 25px;
+    color: var(--text);
+}
+
+.attendance-popup__dialog p {
+    margin-bottom: 20px;
+    color: #475569;
+    font-weight: 700;
+}
+
+.attendance-popup.is-success .attendance-popup__badge {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.attendance-popup.is-error .attendance-popup__badge {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
 .btn-link-clean {
     display: inline-flex;
     margin-top: 14px;

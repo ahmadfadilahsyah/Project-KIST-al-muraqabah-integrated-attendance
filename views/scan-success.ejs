@@ -31,5 +31,37 @@
         <a href="/dashboard" class="btn-primary">Kembali ke Dashboard</a>
     </section>
 </main>
+
+<div id="attendancePopup" class="attendance-popup" hidden>
+    <div class="attendance-popup__backdrop" onclick="closeAttendancePopup()"></div>
+    <div class="attendance-popup__dialog" role="dialog" aria-modal="true" aria-labelledby="attendancePopupTitle">
+        <span id="attendancePopupBadge" class="attendance-popup__badge">Status Absensi</span>
+        <h2 id="attendancePopupTitle">Absensi</h2>
+        <p id="attendancePopupMessage"></p>
+        <button type="button" class="btn-primary" onclick="closeAttendancePopup()">Tutup</button>
+    </div>
+</div>
+
+<script>
+const attendancePopup = document.getElementById('attendancePopup');
+const attendancePopupBadge = document.getElementById('attendancePopupBadge');
+const attendancePopupTitle = document.getElementById('attendancePopupTitle');
+const attendancePopupMessage = document.getElementById('attendancePopupMessage');
+const attendanceSuccess = <%- JSON.stringify(success === true || success === 'true') %>;
+const attendanceMessage = <%- JSON.stringify(message || (success === true || success === 'true' ? 'Absensi berhasil disimpan.' : 'Absensi gagal diproses.')).replace(/</g, '\\u003c') %>;
+
+function closeAttendancePopup() {
+    attendancePopup.hidden = true;
+}
+
+window.addEventListener('load', () => {
+    attendancePopup.classList.toggle('is-success', attendanceSuccess);
+    attendancePopup.classList.toggle('is-error', !attendanceSuccess);
+    attendancePopupBadge.innerText = attendanceSuccess ? 'Absensi Berhasil' : 'Absensi Gagal';
+    attendancePopupTitle.innerText = attendanceSuccess ? 'Absensi berhasil' : 'Absensi gagal';
+    attendancePopupMessage.innerText = attendanceMessage;
+    attendancePopup.hidden = false;
+});
+</script>
 </body>
 </html>

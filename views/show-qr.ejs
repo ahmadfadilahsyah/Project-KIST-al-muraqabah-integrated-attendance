@@ -84,6 +84,16 @@
     </section>
 </main>
 
+<div id="attendancePopup" class="attendance-popup" hidden>
+    <div class="attendance-popup__backdrop" onclick="closeAttendancePopup()"></div>
+    <div class="attendance-popup__dialog" role="dialog" aria-modal="true" aria-labelledby="attendancePopupTitle">
+        <span id="attendancePopupBadge" class="attendance-popup__badge">Status Absensi</span>
+        <h2 id="attendancePopupTitle">Absensi</h2>
+        <p id="attendancePopupMessage"></p>
+        <button type="button" class="btn-primary" onclick="closeAttendancePopup()">Tutup</button>
+    </div>
+</div>
+
 <script>
     const sessionId = '<%= session.id %>';
     const csrfToken = '<%= csrfToken %>';
@@ -93,6 +103,23 @@
     const attendanceCount = document.getElementById('attendance-count');
     const attendanceStatus = document.getElementById('attendance-status');
     const attendanceBody = document.getElementById('attendance-body');
+    const attendancePopup = document.getElementById('attendancePopup');
+    const attendancePopupBadge = document.getElementById('attendancePopupBadge');
+    const attendancePopupTitle = document.getElementById('attendancePopupTitle');
+    const attendancePopupMessage = document.getElementById('attendancePopupMessage');
+
+    function showAttendancePopup(success, message) {
+        attendancePopup.classList.toggle('is-success', success);
+        attendancePopup.classList.toggle('is-error', !success);
+        attendancePopupBadge.innerText = success ? 'Absensi Berhasil' : 'Absensi Gagal';
+        attendancePopupTitle.innerText = success ? 'Absensi berhasil' : 'Absensi gagal';
+        attendancePopupMessage.innerText = message || (success ? 'Absensi berhasil disimpan.' : 'Absensi gagal diproses.');
+        attendancePopup.hidden = false;
+    }
+
+    function closeAttendancePopup() {
+        attendancePopup.hidden = true;
+    }
 
     function escapeHtml(value) {
         return String(value ?? '-')
@@ -137,7 +164,9 @@
         status.innerText = 'Mengambil lokasi GPS...';
 
         if (!navigator.geolocation) {
-            status.innerText = 'Browser tidak mendukung GPS.';
+            const message = 'Browser tidak mendukung GPS.';
+            status.innerText = message;
+            showAttendancePopup(false, message);
             return;
         }
 
@@ -154,12 +183,17 @@
                 });
                 const data = await response.json();
                 status.innerText = data.message || 'Selesai.';
+                showAttendancePopup(Boolean(data.success), data.message || (data.success ? 'Absensi berhasil disimpan.' : 'Absensi gagal diproses.'));
                 if (data.success) setTimeout(() => window.location.reload(), 1200);
             } catch (error) {
-                status.innerText = 'Gagal mengirim kehadiran.';
+                const message = 'Gagal mengirim kehadiran karena koneksi bermasalah atau server tidak merespons.';
+                status.innerText = message;
+                showAttendancePopup(false, message);
             }
         }, function() {
-            status.innerText = 'Gagal mengambil GPS. Pastikan izin lokasi aktif.';
+            const message = 'Gagal mengambil GPS karena izin lokasi belum aktif atau lokasi presisi tinggi belum tersedia.';
+            status.innerText = message;
+            showAttendancePopup(false, message);
         }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
     }
 

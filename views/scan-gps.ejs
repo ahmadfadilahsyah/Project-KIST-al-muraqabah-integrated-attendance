@@ -26,14 +26,43 @@
     </section>
 </main>
 
+<div id="attendancePopup" class="attendance-popup" hidden>
+    <div class="attendance-popup__backdrop" onclick="closeAttendancePopup()"></div>
+    <div class="attendance-popup__dialog" role="dialog" aria-modal="true" aria-labelledby="attendancePopupTitle">
+        <span id="attendancePopupBadge" class="attendance-popup__badge">Status Absensi</span>
+        <h2 id="attendancePopupTitle">Absensi</h2>
+        <p id="attendancePopupMessage"></p>
+        <button type="button" class="btn-primary" onclick="closeAttendancePopup()">Tutup</button>
+    </div>
+</div>
+
 <script>
 const token = '<%= token %>';
 const csrfToken = '<%= csrfToken %>';
 const gpsStatus = document.getElementById('gpsStatus');
+const attendancePopup = document.getElementById('attendancePopup');
+const attendancePopupBadge = document.getElementById('attendancePopupBadge');
+const attendancePopupTitle = document.getElementById('attendancePopupTitle');
+const attendancePopupMessage = document.getElementById('attendancePopupMessage');
+
+function showAttendancePopup(success, message) {
+    attendancePopup.classList.toggle('is-success', success);
+    attendancePopup.classList.toggle('is-error', !success);
+    attendancePopupBadge.innerText = success ? 'Absensi Berhasil' : 'Absensi Gagal';
+    attendancePopupTitle.innerText = success ? 'Absensi berhasil' : 'Absensi gagal';
+    attendancePopupMessage.innerText = message || (success ? 'Absensi berhasil disimpan.' : 'Absensi gagal diproses.');
+    attendancePopup.hidden = false;
+}
+
+function closeAttendancePopup() {
+    attendancePopup.hidden = true;
+}
 
 function submitGpsAttendance() {
     if (!navigator.geolocation) {
-        gpsStatus.innerText = 'Browser tidak mendukung GPS.';
+        const message = 'Browser tidak mendukung GPS.';
+        gpsStatus.innerText = message;
+        showAttendancePopup(false, message);
         return;
     }
 
@@ -57,12 +86,18 @@ function submitGpsAttendance() {
                 setTimeout(() => {
                     window.location.href = `/scan-success?success=true&message=${encodeURIComponent(data.message)}`;
                 }, 1000);
+            } else {
+                showAttendancePopup(false, data.message || 'Absensi gagal diproses.');
             }
         } catch (error) {
-            gpsStatus.innerText = 'Gagal menyimpan absensi.';
+            const message = 'Gagal menyimpan absensi karena koneksi bermasalah atau server tidak merespons.';
+            gpsStatus.innerText = message;
+            showAttendancePopup(false, message);
         }
     }, () => {
-        gpsStatus.innerText = 'Gagal mengambil GPS. Aktifkan izin lokasi dan mode lokasi presisi tinggi.';
+        const message = 'Gagal mengambil GPS karena izin lokasi belum aktif atau lokasi presisi tinggi belum tersedia.';
+        gpsStatus.innerText = message;
+        showAttendancePopup(false, message);
     }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
 }
 
