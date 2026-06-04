@@ -1709,3 +1709,437 @@ button:hover {
         border-bottom: 3px double #111827 !important;
     }
 }
+
+/* Mobile-first responsive hardening */
+@media screen and (max-width: 1100px) {
+    .main-content {
+        padding-left: 22px;
+        padding-right: 22px;
+    }
+
+    .dashboard-editorial-grid,
+    .content-grid.two-column,
+    .profile-grid,
+    .public-support-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .report-filter-form {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .report-filter-form .btn-secondary {
+        grid-column: 1 / -1;
+    }
+}
+
+@media screen and (max-width: 900px) {
+    html {
+        -webkit-text-size-adjust: 100%;
+    }
+
+    body:not(.scan-camera-page) {
+        background:
+            linear-gradient(180deg, rgba(236, 253, 245, .82), rgba(248, 250, 252, .98)),
+            #f8fafc;
+    }
+
+    .topbar {
+        position: sticky;
+        top: 0;
+        padding: 12px 14px;
+        background: rgba(255, 255, 255, .96);
+    }
+
+    .topbar h1 {
+        font-size: 18px;
+        line-height: 1.25;
+    }
+
+    .topbar p {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        font-size: 12px;
+        line-height: 1.35;
+    }
+
+    .main-content {
+        margin-left: 0;
+        padding: 16px 12px calc(96px + env(safe-area-inset-bottom));
+    }
+
+    .content-card,
+    .stat-card,
+    .subject-card,
+    .auth-card,
+    .public-news-card,
+    .gallery-card {
+        border-radius: 16px;
+    }
+
+    .content-card {
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+
+    .content-card::before {
+        width: 42px;
+        margin-bottom: 14px;
+    }
+
+    .content-card h2,
+    .public-section-heading h2 {
+        font-size: 20px;
+        line-height: 1.28;
+    }
+
+    .islamic-hero h2 {
+        font-size: 24px;
+        line-height: 1.18;
+    }
+
+    .islamic-hero p,
+    .content-card p,
+    .public-section-heading p {
+        font-size: 14px;
+    }
+
+    .stats-grid,
+    .public-stats,
+    .public-grid,
+    .public-values,
+    .public-news-grid,
+    .gallery-grid,
+    .subject-card-grid,
+    .qr-session-info,
+    .report-filter-form,
+    .report-meta-grid,
+    .report-summary-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .stat-card {
+        min-height: 0;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+    }
+
+    .stat-card p {
+        margin-bottom: 0;
+        font-size: 13px;
+        font-weight: 900;
+    }
+
+    .stat-card h2 {
+        font-size: 30px;
+        flex-shrink: 0;
+    }
+
+    .dashboard-section-header,
+    .qr-header,
+    .subject-card-head {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .button-row,
+    .dashboard-action-row,
+    .report-actions,
+    .public-contact-row {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+        width: 100%;
+    }
+
+    .btn-primary,
+    .btn-secondary,
+    button,
+    .btn-small,
+    .btn-small-danger {
+        width: 100%;
+        min-height: 46px;
+        padding-left: 14px;
+        padding-right: 14px;
+        white-space: normal;
+        text-align: center;
+    }
+
+    .table-wrapper {
+        overflow-x: auto;
+        margin-left: -4px;
+        margin-right: -4px;
+        padding: 0 4px 8px;
+        border-radius: 14px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    table {
+        min-width: 620px;
+        font-size: 13px;
+    }
+
+    th,
+    td {
+        padding: 11px 12px;
+    }
+
+    .table-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        min-width: 150px;
+    }
+
+    .news-admin-item {
+        grid-template-columns: 72px minmax(0, 1fr);
+        align-items: start;
+        padding: 12px;
+    }
+
+    .news-admin-item form {
+        grid-column: 1 / -1;
+    }
+
+    .news-admin-item p,
+    .public-news-content p,
+    .gallery-card p {
+        overflow-wrap: anywhere;
+    }
+
+    .relation-item {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .mini-form,
+    .status-panel,
+    .islamic-message-box,
+    .report-filter-form {
+        border-radius: 16px;
+        padding: 14px;
+    }
+
+    .public-nav {
+        padding: 14px 12px;
+        gap: 10px;
+    }
+
+    .public-brand {
+        min-width: 0;
+    }
+
+    .public-brand strong,
+    .public-brand small {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 58vw;
+    }
+
+    .public-logo-img,
+    .brand-logo,
+    .auth-logo {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        font-size: 20px;
+    }
+
+    .public-nav-actions {
+        flex-shrink: 0;
+    }
+
+    .public-nav-actions .btn-primary {
+        width: auto;
+        min-height: 42px;
+        padding: 0 14px;
+    }
+
+    .social-icon-link {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+    }
+
+    .public-main {
+        padding: 12px 12px 56px;
+    }
+
+    .public-hero {
+        border-radius: 20px;
+        padding: 38px 16px;
+    }
+
+    .public-hero-slideshow {
+        min-height: min(520px, calc(100vh - 112px));
+    }
+
+    .public-hero h1 {
+        font-size: clamp(30px, 11vw, 44px);
+    }
+
+    .public-hero p {
+        font-size: 15px;
+        line-height: 1.55;
+    }
+
+    .public-values article,
+    .public-news-content {
+        padding: 16px;
+    }
+
+    .featured-news-card,
+    .public-news-card {
+        grid-column: auto;
+    }
+
+    .featured-news-card .public-news-media,
+    .public-news-media,
+    .gallery-card img {
+        height: 210px;
+    }
+
+    .qr-display-box {
+        min-height: 230px;
+        padding: 14px;
+        border-radius: 18px;
+    }
+
+    .qr-display-box img {
+        width: min(230px, 100%);
+        padding: 10px;
+    }
+
+    .attendance-popup {
+        padding: 14px;
+    }
+
+    .attendance-popup__dialog {
+        padding: 20px;
+        border-radius: 18px;
+    }
+
+    .mobile-bottom-nav {
+        left: 8px;
+        right: 8px;
+        bottom: calc(8px + env(safe-area-inset-bottom));
+        min-height: 62px;
+        display: flex;
+        justify-content: flex-start;
+        gap: 4px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        padding: 5px;
+        border-radius: 18px;
+        scrollbar-width: none;
+    }
+
+    .mobile-bottom-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .mobile-bottom-nav a {
+        flex: 0 0 74px;
+        height: 52px;
+        border-radius: 14px;
+        padding: 4px 2px;
+    }
+
+    .mobile-bottom-nav img {
+        width: 22px;
+        height: 22px;
+        border-radius: 8px;
+    }
+
+    .mobile-bottom-nav span {
+        font-size: 10px;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}
+
+@media screen and (max-width: 520px) {
+    input,
+    select,
+    textarea,
+    .form-control {
+        min-height: 46px;
+        padding: 11px 12px;
+        font-size: 14px;
+        border-radius: 12px;
+    }
+
+    label {
+        font-size: 13px;
+    }
+
+    .value-badge,
+    .badge,
+    .status-pill {
+        font-size: 11px;
+        padding: 7px 10px;
+    }
+
+    .report-table td {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 5px;
+        text-align: left;
+    }
+
+    .report-table td::before {
+        flex-basis: auto;
+    }
+
+    .report-summary-grid strong {
+        font-size: 24px;
+    }
+
+    .attendance-status-form {
+        gap: 7px;
+    }
+
+    .scan-main {
+        padding: 6px;
+    }
+
+    .scan-card {
+        height: calc(100svh - 12px);
+        padding: 12px;
+        border-radius: 16px;
+    }
+
+    .scan-card h2 {
+        font-size: 20px;
+        line-height: 1.22;
+    }
+
+    .scan-helper,
+    .info,
+    .field-hint {
+        font-size: 13px;
+    }
+
+    .scan-card .qr-reader-box {
+        border-radius: 16px;
+        padding: 6px;
+    }
+
+    .auth-page {
+        align-items: flex-start;
+        padding: 18px 12px;
+    }
+
+    .auth-card {
+        padding: 20px;
+    }
+}

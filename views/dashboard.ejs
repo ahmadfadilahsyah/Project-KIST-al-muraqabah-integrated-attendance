@@ -90,7 +90,7 @@
                                     <% } %>
                                 </div>
                                 <div>
-                                    <div class="news-meta"><%= item.published_at || item.created_at || '-' %> · <%= item.visibility || 'public' %></div>
+                                    <div class="news-meta"><%= item.published_at || item.created_at || '-' %> - <%= item.visibility || 'public' %></div>
                                     <strong><%= item.title %></strong>
                                     <p><%= item.content.length > 90 ? item.content.substring(0, 90) + '...' : item.content %></p>
                                 </div>
@@ -110,7 +110,7 @@
         <section class="content-card">
             <div class="dashboard-section-header">
                 <div>
-                    <h2>📚 Daftar Sesi Terbaru</h2>
+                    <h2>Daftar Sesi Terbaru</h2>
                     <p>Admin, Kosma, dan Dosen dapat melihat sesi sesuai aksesnya.</p>
                 </div>
                 <div class="button-row dashboard-action-row">
@@ -168,7 +168,7 @@
             <section class="content-card">
                 <div class="dashboard-section-header">
                     <div>
-                        <h2>🧩 Akses PJ Saya</h2>
+                        <h2>Akses PJ Saya</h2>
                         <p>Kamu dapat membuat sesi dan mencetak laporan untuk mata kuliah berikut.</p>
                     </div>
                     <div class="button-row dashboard-action-row">
@@ -192,10 +192,10 @@
         <section class="content-card">
             <div class="dashboard-section-header">
                 <div>
-                    <h2>📋 Riwayat Absensi Saya</h2>
+                    <h2>Riwayat Absensi Saya</h2>
                     <p>Scan QR saat sesi aktif dan pastikan GPS aktif.</p>
                 </div>
-                <a href="/scan" class="btn-primary">📷 Scan QR</a>
+                <a href="/scan" class="btn-primary">Scan QR</a>
             </div>
 
             <% if (!attendanceHistory || attendanceHistory.length === 0) { %>
