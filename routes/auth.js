@@ -157,14 +157,6 @@ router.post('/login', (req, res) => {
     });
 });
 
-router.get('/register', (req, res) => {
-    res.redirect('/login');
-});
-
-router.post('/register', (req, res) => {
-    res.redirect('/login');
-});
-
 router.get('/profile', (req, res) => {
     if (!req.session.user) return res.redirect('/login');
 

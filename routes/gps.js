@@ -1,6 +1,7 @@
 const express = require('express');
 const db = require('../database');
 const { requireAuth, canManageGps } = require('../utils/access');
+const { encryptNumber, decryptNumber } = require('../utils/crypto');
 
 const router = express.Router();
 
@@ -21,11 +22,20 @@ function saveClassLocation({ class_name, latitude, longitude, created_by }, call
     }
 
     db.run(
-        `INSERT INTO class_settings (class_name, latitude, longitude, radius_meters, updated_at, created_at)
-         VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
-        [class_name || 'Lokasi Kelas Informatika A 2024', lat, lng, radius],
+        `INSERT INTO class_settings (class_name, latitude, longitude, latitude_encrypted, longitude_encrypted, radius_meters, updated_at, created_at)
+         VALUES (?, NULL, NULL, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
+        [class_name || 'Lokasi Kelas Informatika A 2024', encryptNumber(lat), encryptNumber(lng), radius],
         (err) => callback(err, { class_name: class_name || 'Lokasi Kelas Informatika A 2024', latitude: lat, longitude: lng, radius_meters: radius })
     );
+}
+
+function hydrateClassSetting(setting) {
+    if (!setting) return setting;
+    return {
+        ...setting,
+        latitude: decryptNumber(setting.latitude_encrypted, setting.latitude),
+        longitude: decryptNumber(setting.longitude_encrypted, setting.longitude)
+    };
 }
 
 router.get('/gps-settings', requireGpsManager, (req, res) => {
@@ -34,7 +44,7 @@ router.get('/gps-settings', requireGpsManager, (req, res) => {
         res.render('gps-settings', {
             pageTitle: 'Set Lokasi Kelas',
             pageSubtitle: 'Tentukan titik kelas. Radius sistem tetap 500 meter untuk toleransi GPS.',
-            setting: setting || { radius_meters: 500 },
+            setting: hydrateClassSetting(setting) || { radius_meters: 500 },
             error: null,
             success: null
         });

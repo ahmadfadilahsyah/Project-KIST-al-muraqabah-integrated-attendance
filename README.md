@@ -23,7 +23,8 @@ Nama **Al-Muraqabah** diambil dari konsep dalam Islam yang berarti kesadaran bah
 ### Authentication & Security
 
 - Login menggunakan NIM
-- Password Hashing (bcrypt)
+- Password hashing Argon2id dengan kompatibilitas bcrypt lama
+- Enkripsi data GPS sensitif menggunakan AES-256-GCM
 - Session Authentication
 - CSRF Protection
 - Secure Headers
@@ -107,7 +108,8 @@ Nama **Al-Muraqabah** diambil dari konsep dalam Islam yang berarti kesadaran bah
 
 ### Authentication & Security
 
-- bcrypt
+- argon2
+- bcrypt untuk verifikasi hash lama
 - express-session
 - CSRF Protection
 
@@ -173,9 +175,12 @@ Buat file `.env`
 DATABASE_URL=postgresql://username:password@host:5432/database
 
 SESSION_SECRET=your-secret-key-minimal-32-karakter
+AES_256_GCM_KEY=secret-32-byte-base64-atau-64-hex
 
 NODE_ENV=development
-BCRYPT_ROUNDS=12
+ARGON2_MEMORY_COST=65536
+ARGON2_TIME_COST=3
+ARGON2_PARALLELISM=1
 PASSWORD_MIN_LENGTH=10
 VAULT_FILE=secrets/vault.json
 ```
@@ -217,8 +222,11 @@ node app.js
 
 ```env
 SESSION_SECRET=your-secret-key-minimal-32-karakter
+AES_256_GCM_KEY=secret-32-byte-base64-atau-64-hex
 NODE_ENV=production
-BCRYPT_ROUNDS=12
+ARGON2_MEMORY_COST=65536
+ARGON2_TIME_COST=3
+ARGON2_PARALLELISM=1
 PASSWORD_MIN_LENGTH=10
 ```
 
@@ -236,8 +244,9 @@ Settings
 
 Project ini mengimplementasikan:
 
-- Password hashing menggunakan bcrypt dengan cost minimal 12 round
-- Rehash otomatis saat login jika hash lama masih memakai cost lebih rendah
+- Password hashing menggunakan Argon2id
+- Hash bcrypt lama tetap dapat diverifikasi dan otomatis direhash ke Argon2id saat login berhasil
+- Data GPS baru disimpan dengan AES-256-GCM untuk enkripsi at-rest
 - Validasi password baru: minimal 10 karakter, huruf besar, huruf kecil, angka, dan simbol
 - Local vault file untuk secret lokal di `secrets/vault.json`
 - Session Authentication

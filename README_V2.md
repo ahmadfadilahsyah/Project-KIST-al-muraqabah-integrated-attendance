@@ -8,7 +8,8 @@ Al-Muraqabah adalah portal kelas dan sistem absensi terpadu berbasis QR dinamis,
 - Express 5
 - EJS
 - PostgreSQL
-- bcrypt
+- argon2
+- bcrypt untuk kompatibilitas hash lama
 - express-session
 - qrcode
 

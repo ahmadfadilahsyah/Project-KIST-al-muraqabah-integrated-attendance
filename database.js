@@ -268,6 +268,9 @@ async function initDatabase() {
                 latitude DOUBLE PRECISION,
                 longitude DOUBLE PRECISION,
                 gps_accuracy DOUBLE PRECISION,
+                latitude_encrypted TEXT,
+                longitude_encrypted TEXT,
+                gps_accuracy_encrypted TEXT,
                 distance_meters DOUBLE PRECISION,
                 note TEXT,
                 updated_by VARCHAR(50),
@@ -295,6 +298,8 @@ async function initDatabase() {
                 class_name TEXT,
                 latitude DOUBLE PRECISION,
                 longitude DOUBLE PRECISION,
+                latitude_encrypted TEXT,
+                longitude_encrypted TEXT,
                 radius_meters INTEGER DEFAULT 500,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -400,6 +405,11 @@ async function initDatabase() {
         await queryAsync(`ALTER TABLE class_profile ADD COLUMN IF NOT EXISTS updated_by VARCHAR(50)`);
         await queryAsync(`ALTER TABLE announcements ADD COLUMN IF NOT EXISTS image_url TEXT`);
         await queryAsync(`ALTER TABLE announcements ADD COLUMN IF NOT EXISTS published_at TIMESTAMP`);
+        await queryAsync(`ALTER TABLE attendance ADD COLUMN IF NOT EXISTS latitude_encrypted TEXT`);
+        await queryAsync(`ALTER TABLE attendance ADD COLUMN IF NOT EXISTS longitude_encrypted TEXT`);
+        await queryAsync(`ALTER TABLE attendance ADD COLUMN IF NOT EXISTS gps_accuracy_encrypted TEXT`);
+        await queryAsync(`ALTER TABLE class_settings ADD COLUMN IF NOT EXISTS latitude_encrypted TEXT`);
+        await queryAsync(`ALTER TABLE class_settings ADD COLUMN IF NOT EXISTS longitude_encrypted TEXT`);
 
         const shouldSeedDemoUsers = process.env.NODE_ENV !== 'production' || process.env.SEED_DEMO_USERS === 'true';
 

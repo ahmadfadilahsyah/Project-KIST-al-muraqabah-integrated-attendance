@@ -3,8 +3,18 @@ const crypto = require('crypto');
 const QRCode = require('qrcode');
 const db = require('../database');
 const { requireAuth, isAdmin, isKosma, isLecturer, isStudent } = require('../utils/access');
+const { decryptNumber } = require('../utils/crypto');
 
 const router = express.Router();
+
+function hydrateClassSetting(setting) {
+    if (!setting) return setting;
+    return {
+        ...setting,
+        latitude: decryptNumber(setting.latitude_encrypted, setting.latitude),
+        longitude: decryptNumber(setting.longitude_encrypted, setting.longitude)
+    };
+}
 
 function canCreateForSubject(user, subjectId, callback) {
     if (isAdmin(user) || isKosma(user)) return callback(null, true);
@@ -98,7 +108,7 @@ router.get('/create-session', requireSessionCreator, (req, res) => {
                 success: req.query.success || null,
                 subjects: req.allowedSubjects,
                 setting: setting || { default_session_minute: 60, min_session_minute: 15, max_session_minute: 120 },
-                classSetting: classSetting || { radius_meters: 500 }
+                classSetting: hydrateClassSetting(classSetting) || { radius_meters: 500 }
             });
         });
     });
@@ -120,7 +130,7 @@ router.post('/create-session', requireSessionCreator, (req, res) => {
                     success: null,
                     subjects: req.allowedSubjects,
                     setting: sys,
-                    classSetting: classSetting || { radius_meters: 500 }
+                    classSetting: hydrateClassSetting(classSetting) || { radius_meters: 500 }
                 });
             });
         };
@@ -178,7 +188,7 @@ router.get('/show-qr/:sessionId', requireAuth, (req, res) => {
                             pageSubtitle: 'Tampilkan QR kepada mahasiswa untuk absensi',
                             session,
                             ownAttendance,
-                            classSetting: classSetting || {},
+                            classSetting: hydrateClassSetting(classSetting) || {},
                             canUseCreatorButton: isStudent(req.session.user) && session.created_by === req.session.user.nim
                         });
                     });

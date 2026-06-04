@@ -1,6 +1,7 @@
 const express = require('express');
 const db = require('../database');
 const { requireAuth, isStudent } = require('../utils/access');
+const { encryptNumber, decryptNumber } = require('../utils/crypto');
 
 const router = express.Router();
 
@@ -40,12 +41,13 @@ function saveAttendanceWithGps(req, res, sessionId, method) {
 
         db.get('SELECT * FROM class_settings ORDER BY id DESC LIMIT 1', [], (err, setting) => {
             if (err) return res.status(500).json({ success: false, message: 'Gagal mengambil lokasi kelas.' });
-            if (!setting || setting.latitude === null || setting.longitude === null) {
+            const classLat = setting ? decryptNumber(setting.latitude_encrypted, setting.latitude) : null;
+            const classLng = setting ? decryptNumber(setting.longitude_encrypted, setting.longitude) : null;
+
+            if (!setting || classLat === null || classLng === null) {
                 return res.status(400).json({ success: false, message: 'Lokasi kelas belum diatur. Admin/Kosma/Dosen perlu menekan Set Lokasi Kelas terlebih dahulu.' });
             }
 
-            const classLat = parseFloat(setting.latitude);
-            const classLng = parseFloat(setting.longitude);
             const radius = parseInt(setting.radius_meters, 10) || 500;
             const distance = getDistance(studentLat, studentLng, classLat, classLng);
 
@@ -57,9 +59,9 @@ function saveAttendanceWithGps(req, res, sessionId, method) {
             }
 
             db.run(
-                `INSERT INTO attendance (nim, session_id, status, method, latitude, longitude, gps_accuracy, distance_meters, created_at)
-                 VALUES (?, ?, 'hadir', ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
-                [req.session.user.nim, sessionId, method, studentLat, studentLng, accuracy, distance],
+                `INSERT INTO attendance (nim, session_id, status, method, latitude, longitude, gps_accuracy, latitude_encrypted, longitude_encrypted, gps_accuracy_encrypted, distance_meters, created_at)
+                 VALUES (?, ?, 'hadir', ?, NULL, NULL, NULL, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+                [req.session.user.nim, sessionId, method, encryptNumber(studentLat), encryptNumber(studentLng), encryptNumber(accuracy), distance],
                 (err) => {
                     if (err) return res.status(500).json({ success: false, message: 'Gagal menyimpan absensi.' });
                     res.json({ success: true, message: `Absensi berhasil. Jarak Anda dari titik kelas ${Math.round(distance)} meter.` });

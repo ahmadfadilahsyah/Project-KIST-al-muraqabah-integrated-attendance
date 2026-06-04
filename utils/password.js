@@ -1,14 +1,14 @@
+const argon2 = require('argon2');
 const bcrypt = require('bcrypt');
 
-const MIN_BCRYPT_ROUNDS = 12;
-const MAX_BCRYPT_ROUNDS = 15;
 const DEFAULT_PASSWORD_MIN_LENGTH = 10;
 
-function getBcryptRounds() {
-    const configured = parseInt(process.env.BCRYPT_ROUNDS || '', 10);
-    if (Number.isNaN(configured)) return MIN_BCRYPT_ROUNDS;
-    return Math.min(Math.max(configured, MIN_BCRYPT_ROUNDS), MAX_BCRYPT_ROUNDS);
-}
+const ARGON2_OPTIONS = {
+    type: argon2.argon2id,
+    memoryCost: parseInt(process.env.ARGON2_MEMORY_COST || '65536', 10),
+    timeCost: parseInt(process.env.ARGON2_TIME_COST || '3', 10),
+    parallelism: parseInt(process.env.ARGON2_PARALLELISM || '1', 10)
+};
 
 function getPasswordMinLength() {
     const configured = parseInt(process.env.PASSWORD_MIN_LENGTH || '', 10);
@@ -35,23 +35,24 @@ function validatePasswordStrength(password) {
 }
 
 function hashPassword(password) {
-    return bcrypt.hash(password, getBcryptRounds());
+    return argon2.hash(password, ARGON2_OPTIONS);
 }
 
-function verifyPassword(password, hash) {
-    return bcrypt.compare(password, hash);
+async function verifyPassword(password, hash) {
+    if (!hash) return false;
+    if (hash.startsWith('$argon2id$')) return argon2.verify(hash, password);
+    if (hash.startsWith('$2a$') || hash.startsWith('$2b$') || hash.startsWith('$2y$')) {
+        return bcrypt.compare(password, hash);
+    }
+    return false;
 }
 
 function needsPasswordRehash(hash) {
-    try {
-        return bcrypt.getRounds(hash) < getBcryptRounds();
-    } catch (err) {
-        return true;
-    }
+    if (!hash || !hash.startsWith('$argon2id$')) return true;
+    return argon2.needsRehash(hash, ARGON2_OPTIONS);
 }
 
 module.exports = {
-    getBcryptRounds,
     getPasswordMinLength,
     validatePasswordStrength,
     hashPassword,
