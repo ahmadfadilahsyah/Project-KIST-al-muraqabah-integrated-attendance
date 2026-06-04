@@ -39,7 +39,10 @@ function saveAttendanceWithGps(req, res, sessionId, method) {
         if (err) return res.status(500).json({ success: false, message: 'Gagal memeriksa absensi.' });
         if (existing) return res.status(400).json({ success: false, message: 'Anda sudah absen pada sesi ini.' });
 
-        db.get('SELECT * FROM class_settings ORDER BY id DESC LIMIT 1', [], (err, setting) => {
+        db.get('SELECT gps_radius_meters FROM sessions WHERE id = ?', [sessionId], (err, sessionSetting) => {
+            if (err) return res.status(500).json({ success: false, message: 'Gagal mengambil pengaturan sesi.' });
+
+            db.get('SELECT * FROM class_settings ORDER BY id DESC LIMIT 1', [], (err, setting) => {
             if (err) return res.status(500).json({ success: false, message: 'Gagal mengambil lokasi kelas.' });
             const classLat = setting ? decryptNumber(setting.latitude_encrypted, setting.latitude) : null;
             const classLng = setting ? decryptNumber(setting.longitude_encrypted, setting.longitude) : null;
@@ -48,7 +51,7 @@ function saveAttendanceWithGps(req, res, sessionId, method) {
                 return res.status(400).json({ success: false, message: 'Lokasi kelas belum diatur. Admin/Kosma/Dosen perlu menekan Set Lokasi Kelas terlebih dahulu.' });
             }
 
-            const radius = parseInt(setting.radius_meters, 10) || 500;
+            const radius = parseInt(sessionSetting && sessionSetting.gps_radius_meters, 10) || 500;
             const distance = getDistance(studentLat, studentLng, classLat, classLng);
 
             if (distance > radius) {
@@ -67,6 +70,7 @@ function saveAttendanceWithGps(req, res, sessionId, method) {
                     res.json({ success: true, message: `Absensi berhasil. Jarak Anda dari titik kelas ${Math.round(distance)} meter.` });
                 }
             );
+            });
         });
     });
 }
@@ -82,7 +86,7 @@ router.get('/confirm/:token', requireStudent, (req, res) => {
     const { token } = req.params;
 
     db.get(
-        `SELECT qt.*, s.judul, sub.name AS subject_name
+        `SELECT qt.*, s.judul, s.gps_radius_meters, sub.name AS subject_name
          FROM qr_tokens qt
          JOIN sessions s ON s.id = qt.session_id
          LEFT JOIN subjects sub ON sub.id = s.subject_id
@@ -119,7 +123,8 @@ router.get('/confirm/:token', requireStudent, (req, res) => {
                     token,
                     session_id: qrToken.session_id,
                     sessionTitle: qrToken.judul,
-                    subjectName: qrToken.subject_name
+                    subjectName: qrToken.subject_name,
+                    gpsRadiusMeters: qrToken.gps_radius_meters || 500
                 });
             });
         }

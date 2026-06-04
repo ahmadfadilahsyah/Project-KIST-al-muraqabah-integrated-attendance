@@ -47,12 +47,18 @@
                         <input type="number" name="expires_minutes" class="form-control" value="<%= setting.default_session_minute || 60 %>" min="<%= setting.min_session_minute || 15 %>" max="<%= setting.max_session_minute || 120 %>" required>
                     </div>
                     <div class="form-group">
-                        <label>QR Refresh</label>
-                        <input type="text" class="form-control disabled-input" value="30 detik" disabled>
+                        <label>QR Refresh (detik)</label>
+                        <input type="number" name="qr_refresh_seconds" class="form-control" value="<%= setting.qr_refresh_second || 30 %>" min="10" max="120" required>
                     </div>
                 </div>
 
-                <p class="info">Durasi dapat diatur antara <%= setting.min_session_minute || 15 %> sampai <%= setting.max_session_minute || 120 %> menit. Default sistem: <%= setting.default_session_minute || 60 %> menit.</p>
+                <div class="form-group">
+                    <label>Radius GPS Absensi (meter)</label>
+                    <input type="number" name="gps_radius_meters" class="form-control" value="<%= setting.gps_radius_meter || 500 %>" min="50" max="2000" required>
+                    <small class="field-hint">Radius ini berlaku hanya untuk sesi yang dibuat sekarang.</small>
+                </div>
+
+                <p class="info">Durasi dapat diatur antara <%= setting.min_session_minute || 15 %> sampai <%= setting.max_session_minute || 120 %> menit. QR refresh 10-120 detik. Radius GPS 50-2000 meter.</p>
 
                 <div class="button-row">
                     <button type="submit" class="btn-primary">Buat Sesi & Tampilkan QR</button>
@@ -68,7 +74,7 @@
                 <div class="status-panel success-panel">
                     <strong>Lokasi kelas sudah aktif</strong>
                     <p><%= classSetting.class_name || 'Lokasi Kelas Informatika A 2024' %></p>
-                    <small>Lat: <%= Number(classSetting.latitude).toFixed(6) %>, Lng: <%= Number(classSetting.longitude).toFixed(6) %> · Radius 500m</small>
+                    <small>Lat: <%= Number(classSetting.latitude).toFixed(6) %>, Lng: <%= Number(classSetting.longitude).toFixed(6) %>. Radius diatur oleh pembuat sesi.</small>
                 </div>
             <% } else { %>
                 <div class="status-panel warning-panel">

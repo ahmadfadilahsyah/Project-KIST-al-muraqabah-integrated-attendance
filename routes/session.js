@@ -115,7 +115,7 @@ router.get('/create-session', requireSessionCreator, (req, res) => {
 });
 
 router.post('/create-session', requireSessionCreator, (req, res) => {
-    const { judul, subject_id, expires_minutes } = req.body;
+    const { judul, subject_id, expires_minutes, gps_radius_meters, qr_refresh_seconds } = req.body;
 
     db.get('SELECT * FROM system_settings WHERE id = 1', [], (err, setting) => {
         if (err) return res.status(500).send('Gagal mengambil pengaturan sistem.');
@@ -144,16 +144,26 @@ router.post('/create-session', requireSessionCreator, (req, res) => {
             return renderForm(`Durasi harus antara ${min} sampai ${max} menit.`);
         }
 
+        const radius = parseInt(gps_radius_meters, 10);
+        if (Number.isNaN(radius) || radius < 50 || radius > 2000) {
+            return renderForm('Radius GPS harus antara 50 sampai 2000 meter.');
+        }
+
+        const refreshSeconds = parseInt(qr_refresh_seconds, 10);
+        if (Number.isNaN(refreshSeconds) || refreshSeconds < 10 || refreshSeconds > 120) {
+            return renderForm('QR refresh harus antara 10 sampai 120 detik.');
+        }
+
         canCreateForSubject(req.session.user, subject_id, async (err, allowed) => {
             if (err) return renderForm('Gagal memeriksa akses mata kuliah.');
             if (!allowed) return renderForm('Anda tidak punya akses membuat sesi untuk mata kuliah ini.');
 
             try {
                 const result = await db.query(
-                    `INSERT INTO sessions (judul, subject_id, created_by, expires_at, duration_minutes, active, created_at)
-                     VALUES (?, ?, ?, CURRENT_TIMESTAMP + (?::int * INTERVAL '1 minute'), ?, 1, CURRENT_TIMESTAMP)
+                    `INSERT INTO sessions (judul, subject_id, created_by, expires_at, duration_minutes, gps_radius_meters, qr_refresh_seconds, active, created_at)
+                     VALUES (?, ?, ?, CURRENT_TIMESTAMP + (?::int * INTERVAL '1 minute'), ?, ?, ?, 1, CURRENT_TIMESTAMP)
                      RETURNING id`,
-                    [judul, subject_id, req.session.user.nim, minutes, minutes]
+                    [judul, subject_id, req.session.user.nim, minutes, minutes, radius, refreshSeconds]
                 );
                 const sessionId = result.rows[0].id;
                 res.redirect(`/show-qr/${sessionId}`);
@@ -215,8 +225,8 @@ router.get('/api/qr-token/:sessionId', requireAuth, (req, res) => {
 
                 db.run(
                     `INSERT INTO qr_tokens (token, session_id, expires_at, used, created_at)
-                     VALUES (?, ?, CURRENT_TIMESTAMP + INTERVAL '90 seconds', 0, CURRENT_TIMESTAMP)`,
-                    [token, sessionId],
+                     VALUES (?, ?, CURRENT_TIMESTAMP + (?::int * INTERVAL '1 second'), 0, CURRENT_TIMESTAMP)`,
+                    [token, sessionId, Math.max((parseInt(session.qr_refresh_seconds, 10) || 30) * 3, 60)],
                     async (err) => {
                         if (err) return res.status(500).json({ success: false, message: 'Gagal menyimpan token QR.' });
 

@@ -24,12 +24,14 @@
             <div><span>Mata Kuliah</span><strong><%= session.subject_name || '-' %></strong></div>
             <div><span>Pertemuan</span><strong><%= session.judul || 'Tanpa Judul' %></strong></div>
             <div><span>Berakhir</span><strong><%= session.expires_at %></strong></div>
+            <div><span>Radius GPS</span><strong><%= session.gps_radius_meters || 500 %> meter</strong></div>
+            <div><span>Refresh QR</span><strong><%= session.qr_refresh_seconds || 30 %> detik</strong></div>
         </div>
 
         <% if (!classSetting || !classSetting.latitude || !classSetting.longitude) { %>
             <div class="alert alert-error">Lokasi kelas belum diatur. Absensi GPS akan gagal sampai admin/kosma/dosen menyimpan titik kelas.</div>
         <% } else { %>
-            <div class="alert alert-success">Lokasi kelas aktif: <%= classSetting.class_name || 'Lokasi Kelas' %> · Radius 500 meter.</div>
+            <div class="alert alert-success">Lokasi kelas aktif: <%= classSetting.class_name || 'Lokasi Kelas' %>. Radius absensi sesi ini <%= session.gps_radius_meters || 500 %> meter.</div>
         <% } %>
 
         <% if (canUseCreatorButton) { %>
@@ -51,7 +53,7 @@
         </div>
 
         <div class="qr-footer-info">
-            <p>QR diperbarui otomatis setiap <strong>30 detik</strong>. Token aktif singkat untuk mengurangi penyebaran screenshot.</p>
+            <p>QR diperbarui otomatis setiap <strong><%= session.qr_refresh_seconds || 30 %> detik</strong>. Token aktif singkat untuk mengurangi penyebaran screenshot.</p>
             <p id="qr-status">Menunggu QR aktif...</p>
         </div>
 
@@ -96,6 +98,7 @@
 
 <script>
     const sessionId = '<%= session.id %>';
+    const qrRefreshMs = <%= (session.qr_refresh_seconds || 30) * 1000 %>;
     const csrfToken = '<%= csrfToken %>';
     const qrImage = document.getElementById('qr-image');
     const qrLoading = document.getElementById('qr-loading');
@@ -236,8 +239,9 @@
 
     loadQrCode();
     loadAttendance();
-    setInterval(loadQrCode, 30000);
+    setInterval(loadQrCode, qrRefreshMs);
     setInterval(loadAttendance, 3000);
 </script>
 </body>
 </html>
+

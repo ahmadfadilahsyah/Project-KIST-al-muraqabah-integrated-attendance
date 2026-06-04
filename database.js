@@ -242,6 +242,8 @@ async function initDatabase() {
                 created_by VARCHAR(50),
                 expires_at TIMESTAMP,
                 duration_minutes INTEGER DEFAULT 60,
+                gps_radius_meters INTEGER DEFAULT 500,
+                qr_refresh_seconds INTEGER DEFAULT 30,
                 active INTEGER DEFAULT 1,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
@@ -410,6 +412,8 @@ async function initDatabase() {
         await queryAsync(`ALTER TABLE attendance ADD COLUMN IF NOT EXISTS gps_accuracy_encrypted TEXT`);
         await queryAsync(`ALTER TABLE class_settings ADD COLUMN IF NOT EXISTS latitude_encrypted TEXT`);
         await queryAsync(`ALTER TABLE class_settings ADD COLUMN IF NOT EXISTS longitude_encrypted TEXT`);
+        await queryAsync(`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS gps_radius_meters INTEGER DEFAULT 500`);
+        await queryAsync(`ALTER TABLE sessions ADD COLUMN IF NOT EXISTS qr_refresh_seconds INTEGER DEFAULT 30`);
 
         const shouldSeedDemoUsers = process.env.NODE_ENV !== 'production' || process.env.SEED_DEMO_USERS === 'true';
 
