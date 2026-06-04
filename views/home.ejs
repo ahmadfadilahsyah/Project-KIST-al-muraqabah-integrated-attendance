@@ -30,13 +30,26 @@
     </header>
 
     <main class="public-main">
-        <section class="public-hero <%= profile.hero_image_url ? 'public-hero-with-image' : '' %>" <% if (profile.hero_image_url) { %>style="background-image: linear-gradient(135deg, rgba(15, 23, 42, .74), rgba(20, 83, 45, .76)), url('<%= profile.hero_image_url %>');"<% } %>>
-            <span class="value-badge">Dari Iman ke Aksi</span>
-            <h1><%= profile.class_name || 'Website Kelas Informatika A 2024' %></h1>
-            <p><%= profile.description || 'Portal kelas yang merawat ilmu, adab, Shidiq, dan Amanah melalui informasi akademik, berita kegiatan, dokumentasi, serta absensi digital yang transparan.' %></p>
-            <div class="button-row center">
-                <a href="/login" class="btn-primary">Masuk Dashboard</a>
-                <a href="#berita" class="btn-secondary">Lihat Berita</a>
+        <section class="public-hero public-hero-slideshow">
+            <div class="hero-slides" aria-hidden="true">
+                <% const heroSlides = (galleries && galleries.length ? galleries.map(item => item.image_url) : []).slice(0, 5); %>
+                <% if (heroSlides.length) { %>
+                    <% heroSlides.forEach((imageUrl, index) => { %>
+                        <div class="hero-slide <%= index === 0 ? 'is-active' : '' %>" style="background-image: url('<%= imageUrl %>');"></div>
+                    <% }) %>
+                <% } else if (profile.hero_image_url) { %>
+                    <div class="hero-slide is-active" style="background-image: url('<%= profile.hero_image_url %>');"></div>
+                <% } %>
+            </div>
+            <div class="hero-overlay"></div>
+            <div class="hero-content">
+                <span class="value-badge">Dari Iman ke Aksi</span>
+                <h1><%= profile.class_name || 'Website Kelas Informatika A 2024' %></h1>
+                <p><%= profile.description || 'Portal kelas yang merawat ilmu, adab, Shidiq, dan Amanah melalui informasi akademik, berita kegiatan, dokumentasi, serta absensi digital yang transparan.' %></p>
+                <div class="button-row center">
+                    <a href="#galeri" class="btn-primary">Lihat Galeri</a>
+                    <a href="#berita" class="btn-secondary">Lihat Berita</a>
+                </div>
             </div>
         </section>
 
@@ -132,7 +145,7 @@
             </div>
         </section>
 
-        <section class="content-card public-card">
+        <section id="galeri" class="content-card public-card">
             <div class="dashboard-section-header">
                 <div>
                     <h2>Galeri Kegiatan</h2>
@@ -165,5 +178,17 @@
             <a href="<%= profile.instagram_url %>" target="_blank" rel="noopener">@abstractbanget</a>
         <% } %>
     </footer>
+<script>
+    const heroSlides = Array.from(document.querySelectorAll('.hero-slide'));
+    let activeHeroSlide = 0;
+
+    if (heroSlides.length > 1) {
+        setInterval(() => {
+            heroSlides[activeHeroSlide].classList.remove('is-active');
+            activeHeroSlide = (activeHeroSlide + 1) % heroSlides.length;
+            heroSlides[activeHeroSlide].classList.add('is-active');
+        }, 4500);
+    }
+</script>
 </body>
 </html>
