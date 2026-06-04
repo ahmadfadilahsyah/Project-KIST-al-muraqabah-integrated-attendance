@@ -29,7 +29,7 @@
 
     <main class="public-main">
         <section class="public-hero <%= profile.hero_image_url ? 'public-hero-with-image' : '' %>" <% if (profile.hero_image_url) { %>style="background-image: linear-gradient(135deg, rgba(15, 23, 42, .74), rgba(20, 83, 45, .76)), url('<%= profile.hero_image_url %>');"<% } %>>
-            <span class="value-badge">Dari Iman ke Taqwa</span>
+            <span class="value-badge">Dari Iman ke Aksi</span>
             <h1><%= profile.class_name || 'Website Kelas Informatika A 2024' %></h1>
             <p><%= profile.description || 'Portal kelas yang merawat ilmu, adab, Shidiq, dan Amanah melalui informasi akademik, berita kegiatan, dokumentasi, serta absensi digital yang transparan.' %></p>
             <div class="button-row center">
@@ -158,7 +158,7 @@
 
     <footer class="public-footer">
         <strong><%= profile.class_name || 'Informatika A 2024' %></strong>
-        <span>Dari Iman ke Taqwa - Shidiq dan Amanah</span>
+        <span>Dari Iman ke Aksi - Shidiq dan Amanah</span>
         <% if (profile.instagram_url) { %>
             <a href="<%= profile.instagram_url %>" target="_blank" rel="noopener">@abstractbanget</a>
         <% } %>

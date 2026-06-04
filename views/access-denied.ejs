@@ -15,10 +15,10 @@
 
     <span class="value-badge">Dari Iman ke Aksi</span>
 
-    <h1 style="margin-top:18px;">Akses Membuat Sesi Belum Tersedia</h1>
+    <h1 style="margin-top:18px;"><%= typeof pageTitle !== 'undefined' ? pageTitle : 'Akses Belum Tersedia' %></h1>
 
     <p style="font-size:16px;line-height:1.8;color:#64748b;">
-      Anda belum terhubung ke mata kuliah sebagai Dosen, PJ, Kosma, atau Admin.
+      <%= typeof pageSubtitle !== 'undefined' ? pageSubtitle : 'Anda belum terhubung ke mata kuliah sebagai Dosen, PJ, Kosma, atau Admin.' %>
       Silakan hubungi Admin atau Kosma agar akun Anda dihubungkan ke mata kuliah yang sesuai.
     </p>
 

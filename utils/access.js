@@ -36,6 +36,10 @@ function canCreateAnySession(user) {
     return isAdmin(user) || isKosma(user) || isLecturer(user);
 }
 
+function canPrintAttendanceReports(user) {
+    return isAdmin(user) || isKosma(user) || isLecturer(user);
+}
+
 function requireAuth(req, res, next) {
     if (!req.session.user) {
         req.session.redirectAfterLogin = req.originalUrl;
@@ -70,6 +74,7 @@ module.exports = {
     canManageSubjects,
     canManageGps,
     canCreateAnySession,
+    canPrintAttendanceReports,
     requireAuth,
     requireAdmin,
     requireAdminOrKosma

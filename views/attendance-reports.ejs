@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan Absensi | Al-Muraqabah</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<%- include('partials/navbar') %>
+
+<main class="main-content report-main">
+    <section class="content-card report-toolbar no-print">
+        <div class="dashboard-section-header">
+            <div>
+                <span class="value-badge">Laporan Kehadiran</span>
+                <h2>Cetak Laporan Absensi</h2>
+                <p>Pilih mata kuliah dan sesi, lalu cetak laporan untuk arsip kelas.</p>
+            </div>
+            <button type="button" class="btn-primary report-print-btn" onclick="window.print()">Cetak</button>
+        </div>
+
+        <form method="GET" action="/attendance-reports" class="report-filter-form">
+            <label>
+                Mata Kuliah
+                <select name="subject_id" onchange="this.form.submit()">
+                    <% subjects.forEach(subject => { %>
+                        <option value="<%= subject.id %>" <%= String(subject.id) === String(selectedSubjectId) ? 'selected' : '' %>>
+                            <%= subject.name %><%= subject.code ? ' - ' + subject.code : '' %>
+                        </option>
+                    <% }) %>
+                </select>
+            </label>
+
+            <label>
+                Sesi Absensi
+                <select name="session_id" onchange="this.form.submit()" <%= !sessions || sessions.length === 0 ? 'disabled' : '' %>>
+                    <% if (!sessions || sessions.length === 0) { %>
+                        <option>Belum ada sesi</option>
+                    <% } else { %>
+                        <% sessions.forEach(session => { %>
+                            <option value="<%= session.id %>" <%= String(session.id) === String(selectedSessionId) ? 'selected' : '' %>>
+                                <%= session.judul || 'Tanpa Judul' %> - <%= session.created_at || '-' %>
+                            </option>
+                        <% }) %>
+                    <% } %>
+                </select>
+            </label>
+
+            <button type="submit" class="btn-secondary">Tampilkan</button>
+        </form>
+    </section>
+
+    <section class="content-card report-sheet">
+        <div class="report-letterhead">
+            <div class="brand-logo">AM</div>
+            <div>
+                <h2>Laporan Absensi Kelas Informatika A 2024</h2>
+                <p>Al-Muraqabah Integrated Attendance</p>
+            </div>
+        </div>
+
+        <% if (!selectedSession) { %>
+            <div class="empty-state">Belum ada sesi absensi untuk mata kuliah ini.</div>
+        <% } else { %>
+            <div class="report-meta-grid">
+                <div><span>Mata Kuliah</span><strong><%= selectedSubject ? selectedSubject.name : '-' %></strong></div>
+                <div><span>Kode</span><strong><%= selectedSubject && selectedSubject.code ? selectedSubject.code : '-' %></strong></div>
+                <div><span>Sesi</span><strong><%= selectedSession.judul || 'Tanpa Judul' %></strong></div>
+                <div><span>Dibuat</span><strong><%= selectedSession.created_at || '-' %></strong></div>
+                <div><span>Berakhir</span><strong><%= selectedSession.expires_at || '-' %></strong></div>
+                <div><span>Dicetak Oleh</span><strong><%= user.nama || user.nim %></strong></div>
+            </div>
+
+            <div class="report-summary-grid">
+                <div><span>Total Mahasiswa</span><strong><%= summary.total %></strong></div>
+                <div><span>Hadir</span><strong><%= summary.hadir %></strong></div>
+                <div><span>Tidak Hadir</span><strong><%= summary.alpha %></strong></div>
+            </div>
+
+            <div class="table-wrapper report-table-wrapper">
+                <table class="report-table">
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>NIM</th>
+                            <th>Nama</th>
+                            <th>Status</th>
+                            <th>Waktu</th>
+                            <th>Metode</th>
+                            <th>Jarak</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% rows.forEach((row, index) => { %>
+                            <tr>
+                                <td><%= index + 1 %></td>
+                                <td><%= row.nim %></td>
+                                <td><strong><%= row.nama %></strong></td>
+                                <td><span class="badge <%= row.status === 'hadir' ? 'hadir' : 'alpha' %>"><%= row.status === 'hadir' ? 'Hadir' : 'Tidak Hadir' %></span></td>
+                                <td><%= row.created_at || '-' %></td>
+                                <td><%= row.method || '-' %></td>
+                                <td><%= row.distance_meters === null || row.distance_meters === undefined ? '-' : Math.round(Number(row.distance_meters)) + ' m' %></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="report-signature">
+                <div>
+                    <span>Dicetak pada</span>
+                    <strong><%= new Date().toLocaleString('id-ID') %></strong>
+                </div>
+                <div>
+                    <span>Penanggung Jawab</span>
+                    <strong><%= user.nama || user.nim %></strong>
+                </div>
+            </div>
+        <% } %>
+    </section>
+</main>
+</body>
+</html>

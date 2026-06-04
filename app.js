@@ -16,6 +16,7 @@ const gpsRoutes = require('./routes/gps');
 const sessionRoutes = require('./routes/session');
 const adminRoutes = require('./routes/admin');
 const subjectRoutes = require('./routes/subjects');
+const reportRoutes = require('./routes/reports');
 const access = require('./utils/access');
 
 app.set('view engine', 'ejs');
@@ -85,7 +86,24 @@ app.use((req, res, next) => {
 app.use((req, res, next) => {
     res.locals.user = req.session.user || null;
     res.locals.access = access;
-    next();
+    res.locals.canUseReports = false;
+
+    const user = req.session.user;
+    if (!user) return next();
+    if (access.isAdmin(user) || access.isKosma(user) || access.isLecturer(user)) {
+        res.locals.canUseReports = true;
+        return next();
+    }
+    if (!access.isStudent(user)) return next();
+
+    db.get('SELECT id FROM subject_pjs WHERE student_nim = ? LIMIT 1', [user.nim], (err, pjAccess) => {
+        if (err) {
+            console.error('Report access check error:', err);
+            return next();
+        }
+        res.locals.canUseReports = !!pjAccess;
+        next();
+    });
 });
 
 app.use('/', authRoutes);
@@ -95,6 +113,7 @@ app.use('/', gpsRoutes);
 app.use('/', sessionRoutes);
 app.use('/', adminRoutes);
 app.use('/', subjectRoutes);
+app.use('/', reportRoutes);
 
 app.use((req, res) => res.status(404).send('Halaman tidak ditemukan'));
 

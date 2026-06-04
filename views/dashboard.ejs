@@ -30,7 +30,7 @@
             <article class="content-card news-composer-card">
                 <div class="dashboard-section-header">
                     <div>
-                        <span class="value-badge">Dari Iman ke Taqwa</span>
+                        <span class="value-badge">Dari Iman ke Aksi</span>
                         <h2>Kelola Berita Kelas</h2>
                         <p>Tulis kabar kelas yang menonjolkan Shidiq, Amanah, ilmu, dan adab.</p>
                     </div>
@@ -112,7 +112,10 @@
                     <h2>📚 Daftar Sesi Terbaru</h2>
                     <p>Admin, Kosma, dan Dosen dapat melihat sesi sesuai aksesnya.</p>
                 </div>
-                <a href="/create-session" class="btn-primary">Buat Sesi</a>
+                <div class="button-row dashboard-action-row">
+                    <a href="/attendance-reports" class="btn-secondary">Cetak Laporan</a>
+                    <a href="/create-session" class="btn-primary">Buat Sesi</a>
+                </div>
             </div>
 
             <% if (!sessions || sessions.length === 0) { %>
@@ -141,6 +144,7 @@
                                     <td>
                                         <div class="table-actions">
                                             <a href="/show-qr/<%= session.id %>" class="btn-small">Lihat QR & Hadir</a>
+                                            <a href="/attendance-reports?subject_id=<%= session.subject_id %>&session_id=<%= session.id %>" class="btn-small">Cetak</a>
                                             <form action="/delete-session/<%= session.id %>" method="POST" onsubmit="return confirm('Nonaktifkan sesi ini?')">
                                                 <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                                 <button type="submit" class="btn-small-danger">Nonaktifkan</button>
@@ -164,9 +168,12 @@
                 <div class="dashboard-section-header">
                     <div>
                         <h2>🧩 Akses PJ Saya</h2>
-                        <p>Kamu dapat membuat sesi untuk mata kuliah berikut.</p>
+                        <p>Kamu dapat membuat sesi dan mencetak laporan untuk mata kuliah berikut.</p>
                     </div>
-                    <a href="/create-session" class="btn-primary">Buat Sesi PJ</a>
+                    <div class="button-row dashboard-action-row">
+                        <a href="/attendance-reports" class="btn-secondary">Cetak Laporan</a>
+                        <a href="/create-session" class="btn-primary">Buat Sesi PJ</a>
+                    </div>
                 </div>
                 <div class="table-wrapper">
                     <table>
