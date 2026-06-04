@@ -10,6 +10,9 @@
 <%- include('partials/navbar') %>
 
 <main class="main-content report-main">
+    <% if (typeof success !== 'undefined' && success) { %><div class="alert alert-success no-print"><%= success %></div><% } %>
+    <% if (typeof error !== 'undefined' && error) { %><div class="alert alert-error no-print"><%= error %></div><% } %>
+
     <section class="content-card report-toolbar no-print">
         <div class="dashboard-section-header">
             <div>
@@ -17,7 +20,12 @@
                 <h2>Cetak Laporan Absensi</h2>
                 <p>Pilih mata kuliah dan sesi, lalu cetak laporan untuk arsip kelas.</p>
             </div>
-            <button type="button" class="btn-primary report-print-btn" onclick="window.print()">Cetak</button>
+            <div class="button-row report-actions">
+                <% if (selectedSession) { %>
+                    <a class="btn-primary report-print-btn" href="/attendance-reports.pdf?subject_id=<%= selectedSubjectId %>&session_id=<%= selectedSessionId %>">Unduh PDF</a>
+                <% } %>
+                <button type="button" class="btn-secondary report-print-btn" onclick="window.print()">Print Browser</button>
+            </div>
         </div>
 
         <form method="GET" action="/attendance-reports" class="report-filter-form">
@@ -47,7 +55,7 @@
                 </select>
             </label>
 
-            <button type="submit" class="btn-secondary">Tampilkan</button>
+                    <button type="submit" class="btn-secondary">Tampilkan</button>
         </form>
     </section>
 
@@ -55,14 +63,20 @@
         <div class="report-letterhead">
             <div class="brand-logo">AM</div>
             <div>
-                <h2>Laporan Absensi Kelas Informatika A 2024</h2>
-                <p>Al-Muraqabah Integrated Attendance</p>
+                <h2>INFORMATIKA A 2024</h2>
+                <p>Al-Muraqabah Integrated Attendance System</p>
+                <small>Laporan kehadiran perkuliahan berbasis QR dan validasi GPS</small>
             </div>
         </div>
 
         <% if (!selectedSession) { %>
             <div class="empty-state">Belum ada sesi absensi untuk mata kuliah ini.</div>
         <% } else { %>
+            <div class="report-document-title">
+                <h1>LAPORAN ABSENSI PERKULIAHAN</h1>
+                <p>Dokumen administrasi kehadiran mahasiswa</p>
+            </div>
+
             <div class="report-meta-grid">
                 <div><span>Mata Kuliah</span><strong><%= selectedSubject ? selectedSubject.name : '-' %></strong></div>
                 <div><span>Kode</span><strong><%= selectedSubject && selectedSubject.code ? selectedSubject.code : '-' %></strong></div>
@@ -75,7 +89,9 @@
             <div class="report-summary-grid">
                 <div><span>Total Mahasiswa</span><strong><%= summary.total %></strong></div>
                 <div><span>Hadir</span><strong><%= summary.hadir %></strong></div>
-                <div><span>Tidak Hadir</span><strong><%= summary.alpha %></strong></div>
+                <div><span>Izin</span><strong><%= summary.izin %></strong></div>
+                <div><span>Sakit</span><strong><%= summary.sakit %></strong></div>
+                <div><span>Alpha</span><strong><%= summary.alpha %></strong></div>
             </div>
 
             <div class="table-wrapper report-table-wrapper">
@@ -86,8 +102,10 @@
                             <th>NIM</th>
                             <th>Nama</th>
                             <th>Status</th>
+                            <th class="no-print">Ubah Keterangan</th>
                             <th>Waktu</th>
                             <th>Metode</th>
+                            <th>Keterangan</th>
                             <th>Jarak</th>
                         </tr>
                     </thead>
@@ -97,9 +115,30 @@
                                 <td><%= index + 1 %></td>
                                 <td><%= row.nim %></td>
                                 <td><strong><%= row.nama %></strong></td>
-                                <td><span class="badge <%= row.status === 'hadir' ? 'hadir' : 'alpha' %>"><%= row.status === 'hadir' ? 'Hadir' : 'Tidak Hadir' %></span></td>
+                                <td>
+                                    <span class="badge <%= row.status === 'hadir' ? 'hadir' : (row.status === 'izin' ? 'izin' : (row.status === 'sakit' ? 'sakit' : 'alpha')) %>">
+                                        <%= row.status === 'hadir' ? 'Hadir' : (row.status === 'izin' ? 'Izin' : (row.status === 'sakit' ? 'Sakit' : 'Alpha')) %>
+                                    </span>
+                                </td>
+                                <td class="no-print">
+                                    <form action="/attendance-reports/status" method="POST" class="attendance-status-form">
+                                        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                        <input type="hidden" name="subject_id" value="<%= selectedSubjectId %>">
+                                        <input type="hidden" name="session_id" value="<%= selectedSessionId %>">
+                                        <input type="hidden" name="nim" value="<%= row.nim %>">
+                                        <select name="status" aria-label="Status <%= row.nama %>">
+                                            <option value="hadir" <%= row.status === 'hadir' ? 'selected' : '' %>>Hadir</option>
+                                            <option value="izin" <%= row.status === 'izin' ? 'selected' : '' %>>Izin</option>
+                                            <option value="sakit" <%= row.status === 'sakit' ? 'selected' : '' %>>Sakit</option>
+                                            <option value="alpha" <%= row.status === 'alpha' ? 'selected' : '' %>>Alpha</option>
+                                        </select>
+                                        <input type="text" name="note" value="<%= row.note || '' %>" placeholder="Keterangan">
+                                        <button type="submit" class="btn-small">Simpan</button>
+                                    </form>
+                                </td>
                                 <td><%= row.created_at || '-' %></td>
                                 <td><%= row.method || '-' %></td>
+                                <td><%= row.note || '-' %></td>
                                 <td><%= row.distance_meters === null || row.distance_meters === undefined ? '-' : Math.round(Number(row.distance_meters)) + ' m' %></td>
                             </tr>
                         <% }) %>
@@ -109,12 +148,14 @@
 
             <div class="report-signature">
                 <div>
-                    <span>Dicetak pada</span>
-                    <strong><%= new Date().toLocaleString('id-ID') %></strong>
+                    <span>Mengetahui</span>
+                    <strong>Dosen / Penanggung Jawab</strong>
+                    <em>(________________________)</em>
                 </div>
                 <div>
-                    <span>Penanggung Jawab</span>
+                    <span>Dicetak oleh</span>
                     <strong><%= user.nama || user.nim %></strong>
+                    <em><%= new Date().toLocaleString('id-ID') %></em>
                 </div>
             </div>
         <% } %>

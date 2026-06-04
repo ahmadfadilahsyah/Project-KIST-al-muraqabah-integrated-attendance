@@ -1,8 +1,109 @@
 const express = require('express');
+const crypto = require('crypto');
+const fs = require('fs');
+const path = require('path');
 const db = require('../database');
 const { requireAuth, requireAdminOrKosma, isAdmin, isLecturer, isKosma, isStudent } = require('../utils/access');
 
 const router = express.Router();
+
+function splitBuffer(buffer, separator) {
+    const parts = [];
+    let start = 0;
+    let index = buffer.indexOf(separator, start);
+
+    while (index !== -1) {
+        parts.push(buffer.slice(start, index));
+        start = index + separator.length;
+        index = buffer.indexOf(separator, start);
+    }
+
+    parts.push(buffer.slice(start));
+    return parts;
+}
+
+function parseMultipartForm(req, callback) {
+    const contentType = req.headers['content-type'] || '';
+    const match = contentType.match(/boundary=(?:"([^"]+)"|([^;]+))/i);
+    if (!match) return callback(new Error('Boundary upload tidak ditemukan.'));
+
+    const boundary = Buffer.from(`--${match[1] || match[2]}`);
+    const chunks = [];
+    let size = 0;
+    const maxSize = 6 * 1024 * 1024;
+
+    req.on('data', chunk => {
+        size += chunk.length;
+        if (size > maxSize) {
+            req.destroy(new Error('Ukuran upload maksimal 6MB.'));
+            return;
+        }
+        chunks.push(chunk);
+    });
+
+    req.on('error', callback);
+    req.on('end', () => {
+        const body = Buffer.concat(chunks);
+        const fields = {};
+        const files = {};
+
+        splitBuffer(body, boundary).forEach(part => {
+            let item = part;
+            if (item.slice(0, 2).toString() === '\r\n') item = item.slice(2);
+            if (item.slice(-2).toString() === '\r\n') item = item.slice(0, -2);
+            if (item.length === 0 || item.toString('latin1') === '--') return;
+            if (item.slice(-2).toString() === '--') item = item.slice(0, -2);
+
+            const headerEnd = item.indexOf(Buffer.from('\r\n\r\n'));
+            if (headerEnd === -1) return;
+
+            const rawHeaders = item.slice(0, headerEnd).toString('latin1');
+            let value = item.slice(headerEnd + 4);
+            if (value.slice(-2).toString() === '\r\n') value = value.slice(0, -2);
+
+            const nameMatch = rawHeaders.match(/name="([^"]+)"/);
+            if (!nameMatch) return;
+
+            const filenameMatch = rawHeaders.match(/filename="([^"]*)"/);
+            const typeMatch = rawHeaders.match(/Content-Type:\s*([^\r\n]+)/i);
+            const name = nameMatch[1];
+
+            if (filenameMatch && filenameMatch[1]) {
+                files[name] = {
+                    filename: filenameMatch[1],
+                    contentType: typeMatch ? typeMatch[1].trim() : 'application/octet-stream',
+                    data: value
+                };
+            } else {
+                fields[name] = value.toString('utf8');
+            }
+        });
+
+        callback(null, { fields, files });
+    });
+}
+
+function saveAnnouncementImage(file) {
+    if (!file || !file.data || file.data.length === 0) return null;
+
+    const allowedTypes = {
+        'image/jpeg': '.jpg',
+        'image/png': '.png',
+        'image/webp': '.webp',
+        'image/gif': '.gif'
+    };
+    const ext = allowedTypes[file.contentType];
+    if (!ext) {
+        throw new Error('Format foto harus JPG, PNG, WEBP, atau GIF.');
+    }
+
+    const uploadDir = path.join(__dirname, '..', 'public', 'uploads', 'announcements');
+    fs.mkdirSync(uploadDir, { recursive: true });
+
+    const filename = `${Date.now()}-${crypto.randomBytes(8).toString('hex')}${ext}`;
+    fs.writeFileSync(path.join(uploadDir, filename), file.data);
+    return `/uploads/announcements/${filename}`;
+}
 
 router.get('/dashboard', requireAuth, (req, res) => {
     const user = req.session.user;
@@ -116,31 +217,53 @@ router.get('/dashboard', requireAuth, (req, res) => {
 });
 
 router.post('/announcements/create', requireAdminOrKosma, (req, res) => {
-    const { title, content, image_url, published_at, visibility } = req.body;
+    const handleCreate = (fields, files = {}) => {
+        const { title, content, published_at, visibility } = fields;
 
-    if (!title || !content) {
-        return res.redirect('/dashboard?error=Judul dan narasi berita wajib diisi.');
+        if (fields._csrf !== req.session.csrfToken) {
+            return res.status(403).send('Token keamanan tidak valid. Muat ulang halaman lalu coba lagi.');
+        }
+
+        if (!title || !content) {
+            return res.redirect('/dashboard?error=Judul dan narasi berita wajib diisi.');
+        }
+
+        let imageUrl = null;
+        try {
+            imageUrl = saveAnnouncementImage(files.image_file);
+        } catch (error) {
+            return res.redirect(`/dashboard?error=${encodeURIComponent(error.message)}`);
+        }
+
+        db.run(
+            `INSERT INTO announcements (title, content, image_url, published_at, visibility, created_by, created_at)
+             VALUES (?, ?, ?, COALESCE(NULLIF(?, '')::timestamp, CURRENT_TIMESTAMP), ?, ?, CURRENT_TIMESTAMP)`,
+            [
+                title.trim(),
+                content.trim(),
+                imageUrl,
+                published_at || null,
+                visibility || 'public',
+                req.session.user.nim
+            ],
+            (err) => {
+                if (err) {
+                    console.error('Create announcement error:', err);
+                    return res.redirect('/dashboard?error=Gagal membuat berita.');
+                }
+                res.redirect('/dashboard?success=Berita berhasil diterbitkan.');
+            }
+        );
+    };
+
+    if ((req.headers['content-type'] || '').includes('multipart/form-data')) {
+        return parseMultipartForm(req, (err, result) => {
+            if (err) return res.redirect(`/dashboard?error=${encodeURIComponent(err.message)}`);
+            handleCreate(result.fields, result.files);
+        });
     }
 
-    db.run(
-        `INSERT INTO announcements (title, content, image_url, published_at, visibility, created_by, created_at)
-         VALUES (?, ?, ?, COALESCE(NULLIF(?, '')::timestamp, CURRENT_TIMESTAMP), ?, ?, CURRENT_TIMESTAMP)`,
-        [
-            title.trim(),
-            content.trim(),
-            image_url ? image_url.trim() : null,
-            published_at || null,
-            visibility || 'public',
-            req.session.user.nim
-        ],
-        (err) => {
-            if (err) {
-                console.error('Create announcement error:', err);
-                return res.redirect('/dashboard?error=Gagal membuat berita.');
-            }
-            res.redirect('/dashboard?success=Berita berhasil diterbitkan.');
-        }
-    );
+    handleCreate(req.body);
 });
 
 router.post('/announcements/:id/delete', requireAdminOrKosma, (req, res) => {

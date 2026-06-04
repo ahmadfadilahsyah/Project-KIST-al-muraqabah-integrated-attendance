@@ -7,29 +7,22 @@
     <link rel="stylesheet" href="/css/style.css">
     <script src="https://unpkg.com/html5-qrcode"></script>
 </head>
-<body>
+<body class="scan-camera-page">
 <%- include('partials/navbar') %>
 
-<main class="main-content">
+<main class="main-content scan-main">
     <section class="content-card form-card text-center scan-card">
         <span class="value-badge">Shidiq dalam Kehadiran</span>
-        <h2>📷 Scan QR Absensi</h2>
+        <h2>Scan QR Absensi</h2>
+        <p class="scan-helper">Kamera dibuka otomatis. Arahkan kamera ke QR Code yang ditampilkan dosen/PJ.</p>
 
-        <div class="islamic-message-box">
-            <h3>Dari Iman ke Aksi</h3>
-            <p>Scan dilakukan oleh diri sendiri sebagai bentuk amanah. Teknologi memvalidasi lokasi, keimanan menjaga niat.</p>
-        </div>
-
-        <div class="info-box">Kamera belakang akan diprioritaskan otomatis di perangkat mobile. Arahkan kamera ke QR Code yang ditampilkan dosen/PJ.</div>
-
-        <div class="button-row center">
-            <button type="button" class="btn-primary" onclick="startPreferredCamera()">Mulai Scan</button>
+        <div class="button-row center scan-actions">
             <button type="button" class="btn-secondary" onclick="switchCamera()">Ganti Kamera</button>
+            <a href="/dashboard" class="btn-secondary">Kembali</a>
         </div>
 
         <div id="qr-reader" class="qr-reader-box"></div>
-        <p id="scan-status" class="info">Tekan Mulai Scan untuk mengaktifkan kamera.</p>
-        <a href="/dashboard" class="btn-secondary">Kembali ke Dashboard</a>
+        <p id="scan-status" class="info">Membuka kamera...</p>
     </section>
 </main>
 
@@ -64,7 +57,7 @@
                 () => {}
             );
             isRunning = true;
-            scanStatus.innerText = 'Kamera belakang aktif. Arahkan ke QR Code.';
+            scanStatus.innerText = 'Kamera aktif. Arahkan ke QR Code.';
             return true;
         } catch (error) {
             return false;
@@ -107,9 +100,7 @@
     }
 
     async function switchCamera() {
-        if (!cameras.length) {
-            cameras = await Html5Qrcode.getCameras();
-        }
+        if (!cameras.length) cameras = await Html5Qrcode.getCameras();
         if (!cameras.length) return;
         const nextIndex = (activeCameraIndex + 1) % cameras.length;
         try {
@@ -119,9 +110,7 @@
         }
     }
 
-    window.addEventListener('load', () => {
-        if (window.innerWidth <= 900) startPreferredCamera();
-    });
+    window.addEventListener('load', startPreferredCamera);
 </script>
 </body>
 </html>

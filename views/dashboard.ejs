@@ -36,7 +36,7 @@
                     </div>
                 </div>
 
-                <form action="/announcements/create" method="POST" class="news-form">
+                <form action="/announcements/create" method="POST" class="news-form" enctype="multipart/form-data">
                     <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                     <label>
                         Judul Berita
@@ -56,8 +56,9 @@
                         </label>
                     </div>
                     <label>
-                        Link Foto
-                        <input type="url" name="image_url" placeholder="https://...">
+                        Foto Berita
+                        <input type="file" name="image_file" accept="image/png,image/jpeg,image/webp,image/gif">
+                        <small class="field-hint">Upload JPG, PNG, WEBP, atau GIF. Maksimal 6MB.</small>
                     </label>
                     <label>
                         Narasi
@@ -113,7 +114,7 @@
                     <p>Admin, Kosma, dan Dosen dapat melihat sesi sesuai aksesnya.</p>
                 </div>
                 <div class="button-row dashboard-action-row">
-                    <a href="/attendance-reports" class="btn-secondary">Cetak Laporan</a>
+                    <a href="/attendance-reports" class="btn-secondary">Laporan PDF</a>
                     <a href="/create-session" class="btn-primary">Buat Sesi</a>
                 </div>
             </div>
@@ -144,7 +145,7 @@
                                     <td>
                                         <div class="table-actions">
                                             <a href="/show-qr/<%= session.id %>" class="btn-small">Lihat QR & Hadir</a>
-                                            <a href="/attendance-reports?subject_id=<%= session.subject_id %>&session_id=<%= session.id %>" class="btn-small">Cetak</a>
+                                            <a href="/attendance-reports.pdf?subject_id=<%= session.subject_id %>&session_id=<%= session.id %>" class="btn-small">PDF</a>
                                             <form action="/delete-session/<%= session.id %>" method="POST" onsubmit="return confirm('Nonaktifkan sesi ini?')">
                                                 <input type="hidden" name="_csrf" value="<%= csrfToken %>">
                                                 <button type="submit" class="btn-small-danger">Nonaktifkan</button>
@@ -171,7 +172,7 @@
                         <p>Kamu dapat membuat sesi dan mencetak laporan untuk mata kuliah berikut.</p>
                     </div>
                     <div class="button-row dashboard-action-row">
-                        <a href="/attendance-reports" class="btn-secondary">Cetak Laporan</a>
+                        <a href="/attendance-reports" class="btn-secondary">Laporan PDF</a>
                         <a href="/create-session" class="btn-primary">Buat Sesi PJ</a>
                     </div>
                 </div>
@@ -209,7 +210,7 @@
                                     <td><%= item.subject_name || '-' %></td>
                                     <td><%= item.judul %></td>
                                     <td><%= item.created_at || '-' %></td>
-                                    <td><span class="badge <%= item.status === 'hadir' ? 'hadir' : 'alpha' %>"><%= item.status %></span></td>
+                                    <td><span class="badge <%= item.status === 'hadir' ? 'hadir' : (item.status === 'izin' ? 'izin' : (item.status === 'sakit' ? 'sakit' : 'alpha')) %>"><%= item.status %></span></td>
                                     <td><%= item.method || '-' %></td>
                                 </tr>
                             <% }) %>

@@ -26,28 +26,29 @@
     </div>
 
     <nav class="sidebar-menu">
-        <a href="/dashboard" class="sidebar-link"><img src="<%= iconPath %>dashboard.svg" alt=""><span>Dashboard</span></a>
-        <a href="/subjects" class="sidebar-link"><img src="<%= iconPath %>subjects.svg" alt=""><span>Mata Kuliah</span></a>
-
-        <% if (isAdminUser || isKosmaUser) { %>
-            <a href="/users" class="sidebar-link"><img src="<%= iconPath %>users.svg" alt=""><span>Manajemen User</span></a>
-            <a href="/class-profile" class="sidebar-link"><img src="<%= iconPath %>class.svg" alt=""><span>Profil Kelas</span></a>
+        <div class="sidebar-menu-group">Sering Dipakai</div>
+        <% if (isStudentUser) { %>
+            <a href="/scan" class="sidebar-link"><img src="<%= iconPath %>scan.svg" alt=""><span>Scan QR</span></a>
         <% } %>
+        <% if (isLecturerUser || isKosmaUser || isAdminUser || isStudentUser) { %>
+            <a href="/create-session" class="sidebar-link"><img src="<%= iconPath %>session.svg" alt=""><span>Buat Sesi</span></a>
+        <% } %>
+        <a href="/dashboard" class="sidebar-link"><img src="<%= iconPath %>dashboard.svg" alt=""><span>Dashboard</span></a>
+        <% if (canUseReportMenu) { %>
+            <a href="/attendance-reports" class="sidebar-link"><img src="<%= iconPath %>report.svg" alt=""><span>Laporan</span></a>
+        <% } %>
+
+        <div class="sidebar-menu-group">Akademik</div>
+        <a href="/subjects" class="sidebar-link"><img src="<%= iconPath %>subjects.svg" alt=""><span>Mata Kuliah</span></a>
 
         <% if (isAdminUser || isKosmaUser || isLecturerUser) { %>
             <a href="/gps-settings" class="sidebar-link"><img src="<%= iconPath %>location.svg" alt=""><span>Lokasi Kelas</span></a>
         <% } %>
 
-        <% if (isLecturerUser || isKosmaUser || isAdminUser || isStudentUser) { %>
-            <a href="/create-session" class="sidebar-link"><img src="<%= iconPath %>session.svg" alt=""><span>Buat Sesi</span></a>
-        <% } %>
-
-        <% if (isStudentUser) { %>
-            <a href="/scan" class="sidebar-link"><img src="<%= iconPath %>scan.svg" alt=""><span>Scan QR</span></a>
-        <% } %>
-
-        <% if (canUseReportMenu) { %>
-            <a href="/attendance-reports" class="sidebar-link"><img src="<%= iconPath %>report.svg" alt=""><span>Laporan</span></a>
+        <% if (isAdminUser || isKosmaUser) { %>
+            <div class="sidebar-menu-group">Pengaturan</div>
+            <a href="/users" class="sidebar-link"><img src="<%= iconPath %>users.svg" alt=""><span>Manajemen User</span></a>
+            <a href="/class-profile" class="sidebar-link"><img src="<%= iconPath %>class.svg" alt=""><span>Profil Kelas</span></a>
         <% } %>
 
         <a href="/profile" class="sidebar-link"><img src="<%= iconPath %>profile.svg" alt=""><span>Profil</span></a>
@@ -83,11 +84,11 @@
 </header>
 
 <nav class="mobile-bottom-nav">
-    <a href="/dashboard"><img src="<%= iconPath %>dashboard.svg" alt=""><span>Home</span></a>
-    <a href="/subjects"><img src="<%= iconPath %>subjects.svg" alt=""><span>Matkul</span></a>
     <% if (isStudentUser) { %><a href="/scan"><img src="<%= iconPath %>scan.svg" alt=""><span>Scan</span></a><% } %>
     <% if (isAdminUser || isKosmaUser || isLecturerUser) { %><a href="/create-session"><img src="<%= iconPath %>session.svg" alt=""><span>Sesi</span></a><% } %>
+    <a href="/dashboard"><img src="<%= iconPath %>dashboard.svg" alt=""><span>Home</span></a>
     <% if (canUseReportMenu) { %><a href="/attendance-reports"><img src="<%= iconPath %>report.svg" alt=""><span>Laporan</span></a><% } %>
+    <a href="/subjects"><img src="<%= iconPath %>subjects.svg" alt=""><span>Matkul</span></a>
     <a href="/profile"><img src="<%= iconPath %>profile.svg" alt=""><span>Profil</span></a>
     <a href="/logout"><img src="<%= iconPath %>logout.svg" alt=""><span>Keluar</span></a>
 </nav>
