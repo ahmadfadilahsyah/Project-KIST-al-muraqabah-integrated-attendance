@@ -366,6 +366,7 @@ async function initDatabase() {
                 id SERIAL PRIMARY KEY,
                 title TEXT NOT NULL,
                 image_url TEXT NOT NULL,
+                description TEXT,
                 visibility VARCHAR(30) NOT NULL DEFAULT 'public',
                 uploaded_by VARCHAR(50),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -404,6 +405,7 @@ async function initDatabase() {
 
 
         await queryAsync(`ALTER TABLE galleries ADD COLUMN IF NOT EXISTS visibility VARCHAR(30) NOT NULL DEFAULT 'public'`);
+        await queryAsync(`ALTER TABLE galleries ADD COLUMN IF NOT EXISTS description TEXT`);
         await queryAsync(`ALTER TABLE class_profile ADD COLUMN IF NOT EXISTS updated_by VARCHAR(50)`);
         await queryAsync(`ALTER TABLE announcements ADD COLUMN IF NOT EXISTS image_url TEXT`);
         await queryAsync(`ALTER TABLE announcements ADD COLUMN IF NOT EXISTS published_at TIMESTAMP`);

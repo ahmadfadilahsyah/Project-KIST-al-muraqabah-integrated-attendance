@@ -43,7 +43,7 @@ router.get('/gps-settings', requireGpsManager, (req, res) => {
         if (err) return res.status(500).send('Gagal mengambil pengaturan lokasi.');
         res.render('gps-settings', {
             pageTitle: 'Set Lokasi Kelas',
-            pageSubtitle: 'Tentukan titik kelas. Radius sistem tetap 500 meter untuk toleransi GPS.',
+            pageSubtitle: 'Tentukan titik kelas. Radius absensi diatur oleh pembuat sesi.',
             setting: hydrateClassSetting(setting) || { radius_meters: 500 },
             error: null,
             success: null
@@ -55,7 +55,7 @@ router.post('/gps-settings', requireGpsManager, (req, res) => {
     const renderPage = (error, success = null, setting = req.body) => {
         res.render('gps-settings', {
             pageTitle: 'Set Lokasi Kelas',
-            pageSubtitle: 'Tentukan titik kelas. Radius sistem tetap 500 meter untuk toleransi GPS.',
+            pageSubtitle: 'Tentukan titik kelas. Radius absensi diatur oleh pembuat sesi.',
             setting: { ...setting, radius_meters: 500 },
             error,
             success

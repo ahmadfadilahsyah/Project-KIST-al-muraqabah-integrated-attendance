@@ -63,7 +63,8 @@ app.use((req, res, next) => {
     res.locals.csrfToken = req.session.csrfToken;
 
     if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
-    if (req.path === '/announcements/create' && (req.headers['content-type'] || '').includes('multipart/form-data')) {
+    if ((req.path === '/announcements/create' || req.path === '/galleries/create')
+        && (req.headers['content-type'] || '').includes('multipart/form-data')) {
         return next();
     }
 

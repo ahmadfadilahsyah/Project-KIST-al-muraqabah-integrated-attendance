@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelola Galeri | Al-Muraqabah</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<%- include('partials/navbar') %>
+
+<main class="main-content">
+    <section class="dashboard-editorial-grid">
+        <article class="content-card news-composer-card">
+            <span class="value-badge">Galeri Kelas</span>
+            <h2>Upload Foto Kegiatan</h2>
+            <p class="info">Foto publik akan tampil di halaman utama pada bagian Galeri Kegiatan.</p>
+
+            <% if (error) { %><div class="alert alert-error"><%= error %></div><% } %>
+            <% if (success) { %><div class="alert alert-success"><%= success %></div><% } %>
+
+            <form action="/galleries/create" method="POST" class="news-form" enctype="multipart/form-data">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <label>
+                    Judul Foto
+                    <input type="text" name="title" placeholder="Contoh: Praktikum Web Minggu 5" required>
+                </label>
+                <label>
+                    Foto
+                    <input type="file" name="image_file" accept="image/png,image/jpeg,image/webp,image/gif" required>
+                    <small class="field-hint">Upload JPG, PNG, WEBP, atau GIF. Maksimal 6MB.</small>
+                </label>
+                <label>
+                    Deskripsi
+                    <textarea name="description" rows="4" placeholder="Ceritakan momen singkat dari foto ini..."></textarea>
+                </label>
+                <label>
+                    Visibilitas
+                    <select name="visibility">
+                        <option value="public">Publik</option>
+                        <option value="private">Internal</option>
+                    </select>
+                </label>
+                <button type="submit" class="btn-primary full-width">Upload ke Galeri</button>
+            </form>
+        </article>
+
+        <article class="content-card">
+            <div class="dashboard-section-header">
+                <div>
+                    <h2>Daftar Galeri</h2>
+                    <p>Kelola dokumentasi yang sudah diupload.</p>
+                </div>
+            </div>
+
+            <% if (!galleries || galleries.length === 0) { %>
+                <div class="empty-state">Belum ada foto galeri.</div>
+            <% } else { %>
+                <div class="news-admin-list">
+                    <% galleries.forEach(item => { %>
+                        <article class="news-admin-item">
+                            <div class="news-admin-thumb">
+                                <img src="<%= item.image_url %>" alt="<%= item.title %>">
+                            </div>
+                            <div>
+                                <div class="news-meta"><%= item.created_at || '-' %> - <%= item.visibility || 'public' %></div>
+                                <strong><%= item.title %></strong>
+                                <p><%= item.description || 'Tanpa deskripsi.' %></p>
+                            </div>
+                            <form action="/galleries/<%= item.id %>/delete" method="POST" onsubmit="return confirm('Hapus foto galeri ini?')">
+                                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                                <button type="submit" class="btn-small-danger">Hapus</button>
+                            </form>
+                        </article>
+                    <% }) %>
+                </div>
+            <% } %>
+        </article>
+    </section>
+</main>
+</body>
+</html>

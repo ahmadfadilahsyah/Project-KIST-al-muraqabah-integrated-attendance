@@ -21,7 +21,9 @@
         </div>
         <div class="public-nav-actions">
             <% if (profile.instagram_url) { %>
-                <a href="<%= profile.instagram_url %>" target="_blank" rel="noopener" class="btn-secondary">Instagram</a>
+                <a href="<%= profile.instagram_url %>" target="_blank" rel="noopener" class="social-icon-link" aria-label="Instagram kelas">
+                    <img src="/img/icons/instagram.svg" alt="">
+                </a>
             <% } %>
             <a href="/login" class="btn-primary">Login</a>
         </div>
